@@ -1,0 +1,1311 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"add_gui",
+				"add_guide_post_onboard"
+			],
+			[
+				"djan",
+				"django_req"
+			],
+			[
+				"coll_r",
+				"coll_rw_loggedout"
+			],
+			[
+				"le",
+				"left_width"
+			],
+			[
+				"clear_cache",
+				"clear_cache_for_req (attribute, function)"
+			],
+			[
+				"clear_ca",
+				"clear_cache_for_thing (attribute, function)"
+			],
+			[
+				"html",
+				"HTML_TIMEOUT"
+			],
+			[
+				"cach",
+				"cache_note (local, instance)"
+			],
+			[
+				"render_",
+				"render_to_string (imported, function)"
+			],
+			[
+				"f_size",
+				"f_size_small"
+			],
+			[
+				"c_",
+				"c_splash_link"
+			],
+			[
+				"desc",
+				"desc (local, instance)"
+			],
+			[
+				"personDes",
+				"personDescToggle"
+			],
+			[
+				"Http",
+				"HttpResponse (imported, class)"
+			],
+			[
+				"app",
+				"appuser"
+			],
+			[
+				"TYPE_C",
+				"TYPE_CITY (global, instance)"
+			],
+			[
+				"c_splash",
+				"c_splash_bright"
+			],
+			[
+				"v",
+				"v	visibility"
+			],
+			[
+				"d",
+				"doc	doc"
+			],
+			[
+				"f_si",
+				"f_size_normal"
+			],
+			[
+				"signup",
+				"signup_prompt_h"
+			],
+			[
+				"c_fa",
+				"c_support_faint"
+			],
+			[
+				"backg",
+				"background-color"
+			],
+			[
+				"c_ligh",
+				"c_light_bg"
+			],
+			[
+				"collection",
+				"collection_id"
+			],
+			[
+				"Coll",
+				"Collection (imported, class)"
+			],
+			[
+				"cle",
+				"clear_tips_for_user (attribute, function)"
+			],
+			[
+				"cl",
+				"clear_tips_for_user (attribute, function)"
+			],
+			[
+				"user_ti",
+				"user_tip_list (local, instance)"
+			],
+			[
+				"user",
+				"user_tip_list (local, instance)"
+			],
+			[
+				"user_tip",
+				"user_tip_list_key (local, instance)"
+			],
+			[
+				"it",
+				"iteritems (builtin, function)"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "index.html",
+			"settings":
+			{
+				"buffer_size": 1946,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scss/site.scss",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "coffee/main.coffee",
+			"settings":
+			{
+				"buffer_size": 21,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/jlipps/Library/Application Support/Sublime Text 2/Packages/User/jlcoffee.sublime-build",
+			"settings":
+			{
+				"buffer_size": 198,
+				"line_ending": "Unix",
+				"name": "untitled.sublime-build"
+			}
+		},
+		{
+			"file": "notes.txt",
+			"settings":
+			{
+				"buffer_size": 145,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "coffee/helpers.coffee",
+			"settings":
+			{
+				"buffer_size": 63,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "js/main.js",
+			"settings":
+			{
+				"buffer_size": 74,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 254.0,
+		"selected_items":
+		[
+			[
+				"Package Control: ",
+				"Package Control: Remove Package"
+			],
+			[
+				"Rope",
+				"Rope: New Project"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 136.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": true,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/jlipps/Code/jonathanlipps/js/jquery-1.7.1.min.js",
+		"/Users/jlipps/Code/jonathanlipps/js/raphael-min.js",
+		"/Users/jlipps/Code/jonathanlipps/.gitignore",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/wf_load_feed.html",
+		"/Users/jlipps/Code/comendi/recommend/console/feed.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/activity.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/feed.py",
+		"/Users/jlipps/Code/comendi/src/scss/detail.scss",
+		"/Users/jlipps/Code/comendi/recommend/console/test.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/recommendation.py",
+		"/Users/jlipps/Code/comendi/recommend/templates/site/base.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/index.html",
+		"/Users/jlipps/Code/comendi/recommend/recapp/views/recommendation.py",
+		"/Users/jlipps/Code/comendi/src/js/_modal.js",
+		"/Users/jlipps/Code/comendi/recommend/recapp/views/collection.py",
+		"/Users/jlipps/Code/comendi/src/scss/modal.scss",
+		"/Users/jlipps/Code/comendi/src/js/__init.js",
+		"/Users/jlipps/Code/comendi/src/scss/base.scss",
+		"/Users/jlipps/Code/comendi/src/scss/site.scss",
+		"/Users/jlipps/Code/comendi/recommend/recapp/views/site.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/user.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/relationships.py",
+		"/Users/jlipps/Code/comendi/src/scss/home.scss",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/admin/coll_desc_edited.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/admin/coll_posted_fb.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/person_collection_header.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/_save_tooltip.html",
+		"/Users/jlipps/Code/comendi/recommend/recapp/migrations/0091_to_try_to_savedrec.py",
+		"/Users/jlipps/Code/comendi/recommend/helpers.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/facebook.py",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/linked_text_list.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/person_coll_desc_header.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/_rec.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/profile_bio_link.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/recommender.html",
+		"/Users/jlipps/Code/comendi/recommend/recapp/templatetags/recommendation.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/urls.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/views/request.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/tests/activity_tests.py",
+		"/Users/jlipps/Code/comendi/src/scss/person.scss",
+		"/Users/jlipps/Code/comendi/recommend/recapp/auth/__init__.py",
+		"/Users/jlipps/Code/comendi/recommend/templates/site/_header_login.html",
+		"/Users/jlipps/Code/comendi/src/js/index.js",
+		"/Users/jlipps/Code/comendi/recommend/templates/site/_header.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/login.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/site/_htmlhead.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/user_link.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/follower_section.html",
+		"/Users/jlipps/Code/comendi/recommend/console/topic.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/topic.py",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/ajax/onboard_modal.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/home.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/person.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/site/_async_js.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/site/_footer.html",
+		"/Users/jlipps/Code/comendi/recommend/recapp/migrations/0095_save_guide_slugs.py",
+		"/Users/jlipps/Code/comendi/src/js/person.js",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/collection.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/views/person.py",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/uimg.html",
+		"/Users/jlipps/Code/comendi/info/ec2-setup-web.sh",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/_req.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/rec_added_topic.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/_req_added.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/_rec_why.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/req_added_user.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/_rec_user_details.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/_agreements.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/review.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/recthing.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/request_header.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/ajax/recommender.html",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/request.py",
+		"/Users/jlipps/Code/comendi/wsgi/cupx.sh",
+		"/Users/jlipps/Code/comendi/info/jl-working-notes.txt",
+		"/Users/jlipps/Code/comendi/recommend/settings/base.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/__init__.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/person_feed.py",
+		"/Users/jlipps/Code/comendi/src/scss/request.scss",
+		"/Users/jlipps/Code/comendi/src/scss/feed.scss",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/feed_nav_person.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/admin/rec_saved_user.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/admin/rec_collected_user.html",
+		"/Users/jlipps/Code/comendi/recommend/recapp/migrations/0080_add_default_collections.py",
+		"/Users/jlipps/Code/comendi/recommend/templates/mail/user_collects_text.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/coll_stack.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/_save_button.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/_coll_cb.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/_save_button_and_tip.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/rec_saved_user.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/rec_collected_user.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/admin/rec_uncollected_user.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/request.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/admin/rec_opened_fb_dialog.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/admin/coll_opened_fb_dialog.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/admin/rec_posted_fb.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/add_rec_btn.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/rec_added_group.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/rec_added_req.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/rec_added_thing.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/rec_added_user.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/rec_added_user_profile.html",
+		"/Users/jlipps/Code/comendi/mobile/html/lib/touch/src/platform/src/data/proxies/LocalStorageProxy.js",
+		"/Users/jlipps/Code/comendi/recommend/recapp/context_processors.py",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/ajax/new_coll_modal.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/ajax/recthing_modal.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/rec_loc_fields.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/ajax/share_req_modal.html",
+		"/Users/jlipps/Code/comendi/src/js/request.js",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/thing.py",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/add_rec_body.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/linked_topic.html",
+		"/Users/jlipps/Code/comendi/recommend/recapp/views/search.py",
+		"/Users/jlipps/Code/comendi/src/js/home.js",
+		"/Users/jlipps/Code/comendi/recommend/recapp/migrations/0088_coll_topic_activities.py",
+		"/Users/jlipps/Code/comendi/src/js/lib/jquery.ui.autocomplete.js",
+		"/Users/jlipps/Code/comendi/src/js/lib/jquery.ui.__core.js",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/invite.py",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/terms.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/recapp/test.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/_/feed_nav.html",
+		"/Users/jlipps/Code/comendi/recommend/templates/feed/thing_added_req.html",
+		"/Users/jlipps/Code/comendi/comendi.sublime-workspace",
+		"/Users/jlipps/Code/comendi/recommend/recapp/migrations/0087_add_favorites_coll.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/tests/add_rec_tests.py",
+		"/Users/jlipps/Code/comendi/recommend/recapp/models/base.py",
+		"/Users/jlipps/Code/comendi/info/requirements.txt",
+		"/Users/jlipps/Code/comendi/info/virtualenv-setup.sh"
+	],
+	"find":
+	{
+		"height": 43.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"action_pan",
+			"collection yet",
+			"></",
+			"you're no",
+			"j_login",
+			";",
+			".full_name",
+			"feed/_rec_why.html",
+			"{% agreements",
+			"feed/_agreements.html",
+			"_/agreements.html",
+			"_/recthing_",
+			"_/recthing.html",
+			"_/review.html",
+			"ajax/recommender",
+			"recommender.html",
+			"person.app_url",
+			"user.app_url",
+			"person.link|safe",
+			"user.link|safe",
+			"bio",
+			"regist",
+			"collection",
+			"collections",
+			"collection",
+			"h1",
+			"5px",
+			"ajax",
+			"fb_post_obj",
+			"annotate(",
+			"pencil-big",
+			"^\\s+logger",
+			"\\",
+			"^\\s+logger",
+			"logger.info",
+			"bookm",
+			"_save_re",
+			"CATCHALL_COL",
+			"FAVORITES_COLL",
+			"CATCHALL",
+			"is_first_for_rec",
+			"category ye",
+			"collections_for",
+			"uwsg",
+			"bio",
+			"selected",
+			"close-on",
+			"logger.in",
+			"logger.info",
+			"rec_added_user_profile.html",
+			"\"feed/_rec.html\"",
+			"\"feed/_rec.html\n",
+			"saved",
+			"fav",
+			"count(act",
+			"REC_COLLECTED_USER",
+			".attr('checked",
+			"\" true %",
+			"dev=True",
+			"dev=true",
+			"onboarding.js",
+			".js",
+			"_xfbml.html",
+			"FB.",
+			"recThing",
+			"1500",
+			"images/",
+			"150",
+			"user=None",
+			"models.ForeignKey('Thing",
+			"thing",
+			"headerri",
+			"@include review_content",
+			"@include rec_list",
+			"j_save_ol",
+			".recBio",
+			"initBioBox",
+			"$$.bindAddOwnRecs(",
+			"$$.bindAddOwn",
+			"indexP",
+			"uniqui",
+			"REC_ACTIONS",
+			"bindFeedLinks",
+			"qtip",
+			"feed_users",
+			"person/",
+			"settings",
+			"setting",
+			"message",
+			"deleteFo",
+			"recDe",
+			"REQ_POSTED_FB",
+			"post_to",
+			"app_url }}/",
+			"app_url }}",
+			"REQ_ADDED_TOPIC",
+			"q_activities",
+			"reflowFeedStartingFrom(",
+			"reflowFeedStartingFrom",
+			"$$.reflowFeed(",
+			"setTim",
+			"rec_act",
+			".merge_group",
+			"ACTIVITY_CLASSES",
+			".rec_added(",
+			"ORIGIN_",
+			"green-bookmark",
+			"$c_splash",
+			"vote_type_up",
+			"initHover",
+			"initIm",
+			"noIm",
+			"initImag",
+			"$(sels.locStr",
+			"initImag",
+			"initIm",
+			"initImage",
+			"$$.initImage",
+			"template",
+			"Paul",
+			"$$.in(",
+			"$$.in =",
+			"$$.in",
+			"!",
+			"REQ_ADDED_U",
+			"force_",
+			"GroupMembership.objects",
+			"REQ_ADDED_GROUP"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"\" %",
+			"true",
+			"dev=True",
+			".min.js",
+			"/static/img/jui_imgs/",
+			"app_url }}",
+			"blue-bookmark",
+			"class=",
+			"$f_size_big",
+			"$f_size_normal",
+			"first_user_group",
+			"group",
+			"retObj",
+			"",
+			"{% if show_feed_type %}",
+			"_follower_manager"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 2,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "index.html",
+					"settings":
+					{
+						"buffer_size": 1946,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1421,
+								1421
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 281.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "scss/site.scss",
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/kuroir-SCSS.tmbundle/Syntaxes/SCSS.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "coffee/main.coffee",
+					"settings":
+					{
+						"buffer_size": 21,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								21,
+								21
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CoffeeScript/Syntaxes/CoffeeScript.tmLanguage",
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/Users/jlipps/Library/Application Support/Sublime Text 2/Packages/User/jlcoffee.sublime-build",
+					"settings":
+					{
+						"buffer_size": 198,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								106,
+								106
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "notes.txt",
+					"settings":
+					{
+						"buffer_size": 145,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								57,
+								57
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "coffee/helpers.coffee",
+					"settings":
+					{
+						"buffer_size": 63,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								63,
+								63
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CoffeeScript/Syntaxes/CoffeeScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "js/main.js",
+					"settings":
+					{
+						"buffer_size": 74,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		},
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.493711838018,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 118.0
+	},
+	"replace":
+	{
+		"height": 62.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"main.j",
+				"js/main.js"
+			],
+			[
+				"modal.j",
+				"src/js/_modal.js"
+			],
+			[
+				"init.j",
+				"src/js/__init.js"
+			],
+			[
+				"wf_l",
+				"recommend/templates/_/wf_load_feed.html"
+			],
+			[
+				"site.py",
+				"recommend/recapp/views/site.py"
+			],
+			[
+				"person.js",
+				"src/js/person.js"
+			],
+			[
+				"person.s",
+				"src/scss/person.scss"
+			],
+			[
+				"",
+				"src/scss/site.scss"
+			],
+			[
+				"base.s",
+				"src/scss/base.scss"
+			],
+			[
+				"site.s",
+				"src/scss/site.scss"
+			],
+			[
+				"coll_de",
+				"recommend/templates/_/person_coll_desc_header.html"
+			],
+			[
+				"person.ht",
+				"recommend/templates/recapp/person.html"
+			],
+			[
+				"_rec.h",
+				"recommend/templates/feed/_rec.html"
+			],
+			[
+				"request.py",
+				"recommend/recapp/views/request.py"
+			],
+			[
+				"rec_added_user",
+				"recommend/templates/feed/rec_added_user.html"
+			],
+			[
+				"feed.py",
+				"recommend/recapp/models/feed.py"
+			],
+			[
+				"feed",
+				"recommend/console/feed.py"
+			],
+			[
+				"_rec",
+				"recommend/templates/feed/_rec.html"
+			],
+			[
+				"detail.py",
+				"recommend/recapp/views/detail.py"
+			],
+			[
+				"user_foll",
+				"recommend/templates/feed/user_followed_user.html"
+			],
+			[
+				"user.py",
+				"recommend/recapp/models/user.py"
+			],
+			[
+				"init",
+				"src/js/__init.js"
+			],
+			[
+				"user_dail",
+				"recommend/templates/feed/admin/user_daily_login.html"
+			],
+			[
+				"person.j",
+				"src/js/person.js"
+			],
+			[
+				"urls.py",
+				"recommend/recapp/urls.py"
+			],
+			[
+				"activi",
+				"recommend/recapp/models/activity.py"
+			],
+			[
+				"person.py",
+				"recommend/recapp/views/person.py"
+			],
+			[
+				"home.s",
+				"src/scss/home.scss"
+			],
+			[
+				"home.ht",
+				"recommend/templates/recapp/home.html"
+			],
+			[
+				"user",
+				"recommend/recapp/models/user.py"
+			],
+			[
+				"topic.py",
+				"recommend/recapp/models/topic.py"
+			],
+			[
+				"topic",
+				"recommend/console/topic.py"
+			],
+			[
+				"rela",
+				"recommend/recapp/models/relationships.py"
+			],
+			[
+				"relation",
+				"recommend/recapp/models/relationships.py"
+			],
+			[
+				"follo",
+				"recommend/templates/_/follower_section.html"
+			],
+			[
+				"home.sc",
+				"src/scss/home.scss"
+			],
+			[
+				"modal.s",
+				"src/scss/modal.scss"
+			],
+			[
+				"onbo",
+				"recommend/templates/recapp/ajax/onboard_modal.html"
+			],
+			[
+				"user_li",
+				"recommend/templates/_/user_link.html"
+			],
+			[
+				"htmlhe",
+				"recommend/templates/site/_htmlhead.html"
+			],
+			[
+				"recommen",
+				"recommend/recapp/views/recommendation.py"
+			],
+			[
+				"index.ht",
+				"recommend/templates/recapp/index.html"
+			],
+			[
+				"login",
+				"recommend/templates/recapp/login.html"
+			],
+			[
+				"index.j",
+				"src/js/index.js"
+			],
+			[
+				"hea",
+				"recommend/templates/site/_header_login.html"
+			],
+			[
+				"person.sc",
+				"src/scss/person.scss"
+			],
+			[
+				"base.sc",
+				"src/scss/base.scss"
+			],
+			[
+				"js.html",
+				"recommend/templates/site/_async_js.html"
+			],
+			[
+				"foot",
+				"recommend/templates/site/_footer.html"
+			],
+			[
+				"htmlh",
+				"recommend/templates/site/_htmlhead.html"
+			],
+			[
+				"header.ht",
+				"recommend/templates/site/_header.html"
+			],
+			[
+				"base.ht",
+				"recommend/templates/site/base.html"
+			],
+			[
+				"recomm",
+				"recommend/recapp/models/recommendation.py"
+			],
+			[
+				"activity",
+				"recommend/recapp/tests/activity_tests.py"
+			],
+			[
+				"test.py",
+				"recommend/console/test.py"
+			],
+			[
+				"rec_added_top",
+				"recommend/templates/feed/rec_added_topic.html"
+			],
+			[
+				"_req.ht",
+				"recommend/templates/feed/_req.html"
+			],
+			[
+				"req_added_u",
+				"recommend/templates/feed/req_added_user.html"
+			],
+			[
+				"req_added",
+				"recommend/templates/feed/_req_added.html"
+			],
+			[
+				"rec_why",
+				"recommend/templates/feed/_rec_why.html"
+			],
+			[
+				"linked_te",
+				"recommend/templates/_/linked_text_list.html"
+			],
+			[
+				"_agre",
+				"recommend/templates/feed/_agreements.html"
+			],
+			[
+				"recthing.h",
+				"recommend/templates/_/recthing.html"
+			],
+			[
+				"review.ht",
+				"recommend/templates/_/review.html"
+			],
+			[
+				"request_he",
+				"recommend/templates/_/request_header.html"
+			],
+			[
+				"recommender.h",
+				"recommend/templates/_/recommender.html"
+			],
+			[
+				"setup",
+				"info/ec2-setup-web.sh"
+			],
+			[
+				"uim",
+				"recommend/templates/_/uimg.html"
+			],
+			[
+				"ur",
+				"recommend/recapp/urls.py"
+			],
+			[
+				"face",
+				"recommend/recapp/facebook.py"
+			],
+			[
+				"auth/ini",
+				"recommend/recapp/auth/__init__.py"
+			],
+			[
+				"site.p",
+				"recommend/recapp/views/site.py"
+			],
+			[
+				"uimg",
+				"recommend/templates/_/uimg.html"
+			],
+			[
+				"coll",
+				"recommend/recapp/models/collection.py"
+			],
+			[
+				"help",
+				"recommend/helpers.py"
+			],
+			[
+				"0091",
+				"recommend/recapp/migrations/0091_to_try_to_savedrec.py"
+			],
+			[
+				"0095",
+				"recommend/recapp/migrations/0095_save_guide_slugs.py"
+			],
+			[
+				"site",
+				"src/scss/site.scss"
+			],
+			[
+				"detail.s",
+				"src/scss/detail.scss"
+			],
+			[
+				"activity.py",
+				"recommend/recapp/models/activity.py"
+			],
+			[
+				"coll_po",
+				"recommend/templates/feed/admin/coll_posted_fb.html"
+			],
+			[
+				"urls",
+				"recommend/recapp/urls.py"
+			],
+			[
+				"colle",
+				"recommend/recapp/models/collection.py"
+			],
+			[
+				"init.js",
+				"src/js/__init.js"
+			],
+			[
+				"person_co",
+				"recommend/templates/_/person_collection_header.html"
+			],
+			[
+				"person_hea",
+				"recommend/templates/_/person_coll_desc_header.html"
+			],
+			[
+				"tooltip",
+				"recommend/templates/feed/_save_tooltip.html"
+			],
+			[
+				"collec",
+				"recommend/recapp/views/collection.py"
+			],
+			[
+				"person_col",
+				"recommend/templates/_/person_collection_header.html"
+			],
+			[
+				"posted_f",
+				"recommend/templates/feed/admin/rec_posted_fb.html"
+			],
+			[
+				"opened_fb",
+				"recommend/templates/feed/admin/rec_opened_fb_dialog.html"
+			],
+			[
+				"activit",
+				"recommend/recapp/models/activity.py"
+			],
+			[
+				"collection",
+				"recommend/recapp/models/collection.py"
+			],
+			[
+				"feed.s",
+				"src/scss/feed.scss"
+			],
+			[
+				"wf_lo",
+				"recommend/templates/_/wf_load_feed.html"
+			],
+			[
+				"feed.sc",
+				"src/scss/feed.scss"
+			],
+			[
+				"request.sc",
+				"src/scss/request.scss"
+			],
+			[
+				"add_rec_b",
+				"recommend/templates/_/add_rec_btn.html"
+			],
+			[
+				"request.html",
+				"recommend/templates/recapp/request.html"
+			],
+			[
+				"rec_sav",
+				"recommend/templates/feed/rec_saved_user.html"
+			],
+			[
+				"rec_col",
+				"recommend/templates/feed/rec_collected_user.html"
+			],
+			[
+				"feed/rec_col",
+				"recommend/templates/feed/admin/rec_uncollected_user.html"
+			],
+			[
+				"collection.py",
+				"recommend/recapp/models/collection.py"
+			],
+			[
+				"coll_cb",
+				"recommend/templates/feed/_coll_cb.html"
+			],
+			[
+				"save_bu",
+				"recommend/templates/feed/_save_button.html"
+			],
+			[
+				"rec_added",
+				"recommend/templates/feed/rec_added_user_profile.html"
+			],
+			[
+				"rec_added_",
+				"recommend/templates/feed/rec_added_user.html"
+			],
+			[
+				"person_fe",
+				"recommend/recapp/models/person_feed.py"
+			],
+			[
+				"rec.html",
+				"recommend/templates/feed/_rec.html"
+			],
+			[
+				"coll_s",
+				"recommend/templates/_/coll_stack.html"
+			],
+			[
+				"feed_nav_",
+				"recommend/templates/_/feed_nav_person.html"
+			],
+			[
+				"person.htm",
+				"recommend/templates/recapp/person.html"
+			],
+			[
+				"person_f",
+				"recommend/recapp/models/person_feed.py"
+			],
+			[
+				"save_to",
+				"recommend/templates/feed/_save_tooltip.html"
+			],
+			[
+				"rec",
+				"recommend/recapp/views/recommendation.py"
+			],
+			[
+				"cup",
+				"wsgi/cupx.sh"
+			],
+			[
+				"modal.sc",
+				"src/scss/modal.scss"
+			],
+			[
+				"modals.s",
+				"mobile/html/lib/touch/src/platform/src/data/proxies/LocalStorageProxy.js"
+			],
+			[
+				"activity_te",
+				"recommend/recapp/tests/activity_tests.py"
+			],
+			[
+				"auth/in",
+				"recommend/recapp/auth/__init__.py"
+			],
+			[
+				"auth/i",
+				"recommend/recapp/auth/__init__.py"
+			],
+			[
+				"collcb",
+				"recommend/templates/feed/_coll_cb.html"
+			],
+			[
+				"_coll_c",
+				"recommend/templates/feed/_coll_cb.html"
+			],
+			[
+				"toolti",
+				"recommend/templates/feed/_save_tooltip.html"
+			],
+			[
+				"person.p",
+				"recommend/recapp/views/person.py"
+			],
+			[
+				"rec_coll",
+				"recommend/templates/feed/rec_collected_user.html"
+			],
+			[
+				"note",
+				"info/jl-working-notes.txt"
+			],
+			[
+				"0080",
+				"recommend/recapp/migrations/0080_add_default_collections.py"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"show_minimap": false,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 211.0,
+	"status_bar_visible": true
+}
