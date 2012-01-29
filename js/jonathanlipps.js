@@ -9,12 +9,18 @@
     return child;
   };
   Flower = (function() {
-    function Flower(root_el) {
+    function Flower(root_el, container_el, opts) {
       this.root_el = root_el;
+      this.container_el = container_el;
+      this.opts = opts;
       this.main_node = new FlowerNode(this.root_el);
+      this.paper = Raphael(this.container_el.offset().left, this.container_el.offset().top, this.container_el.width(), this.container_el.outerHeight());
+      this.center = [this.container_el.width() / 2, this.container_el.outerHeight() / 2];
     }
-    Flower.prototype.parse_data = function() {
-      return null;
+    Flower.prototype.build = function() {
+      log(this.center);
+      this.main_node_p = this.paper.circle(this.center[0], this.center[1], 50);
+      return this.main_node_p.attr("fill", this.opts.node_color);
     };
     return Flower;
   })();
@@ -24,9 +30,18 @@
     }
   };
   $(function() {
-    var f;
-    f = new Flower($('#flowerRoot'));
-    return log(f.main_node);
+    var f, opts;
+    opts = {
+      node_color: '#fff'
+    };
+    $('body').css({
+      'height': $(window).outerHeight() + 'px'
+    });
+    f = new Flower($('#flowerRoot'), $('body'), opts);
+    log($('body').outerHeight());
+    log($(window).outerHeight());
+    log(f.main_node);
+    return f.build();
   });
   Node = (function() {
     function Node(el, type) {
@@ -36,12 +51,21 @@
       this.load_children();
     }
     Node.prototype.load_children = function() {
-      var child_els, el, _i, _len, _results;
+      var child_els, el, _i, _len, _ref, _results;
       child_els = this.el.children('.childNode, .childContent');
+      _ref = (function() {
+        var _j, _len, _results2;
+        _results2 = [];
+        for (_j = 0, _len = child_els.length; _j < _len; _j++) {
+          el = child_els[_j];
+          _results2.push($(el));
+        }
+        return _results2;
+      })();
       _results = [];
-      for (_i = 0, _len = child_els.length; _i < _len; _i++) {
-        el = child_els[_i];
-        _results.push(this.children.push(this.load_node_based_on_class($(el))));
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        el = _ref[_i];
+        _results.push(this.children.push(this.load_node_based_on_class(el)));
       }
       return _results;
     };
@@ -54,18 +78,18 @@
     };
     return Node;
   })();
-  FlowerNode = (function() {
-    __extends(FlowerNode, Node);
-    function FlowerNode(el) {
-      FlowerNode.__super__.constructor.call(this, el, 'flower');
-    }
-    return FlowerNode;
-  })();
   ContentNode = (function() {
     __extends(ContentNode, Node);
     function ContentNode(el) {
       ContentNode.__super__.constructor.call(this, el, 'content');
     }
     return ContentNode;
+  })();
+  FlowerNode = (function() {
+    __extends(FlowerNode, Node);
+    function FlowerNode(el) {
+      FlowerNode.__super__.constructor.call(this, el, 'flower');
+    }
+    return FlowerNode;
   })();
 }).call(this);
