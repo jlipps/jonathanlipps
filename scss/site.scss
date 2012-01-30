@@ -1,5 +1,107 @@
+
+// SITE MIXINS
+
+@mixin opacity($value) {
+    opacity: $value;
+    filter: alpha(opacity=#{$value*100});
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$value*100})";
+}
+
+@mixin shadow($h: 0px, $v: 0px, $d: 6px, $r: 60, $g: 60, $b: 60, $a: 0.4) {
+    -webkit-box-shadow: $h $v $d rgba($r, $g, $b, $a);
+    -moz-box-shadow: $h $v $d rgba($r, $g, $b, $a);
+}
+
+@mixin rounded_top($rad) {
+    -webkit-border-top-left-radius: $rad;
+    -webkit-border-top-right-radius: $rad;
+    -moz-border-radius-topleft: $rad;
+    -moz-border-radius-topright: $rad;
+    border-top-left-radius: $rad;
+    border-top-right-radius: $rad;
+}
+
+@mixin rounded_bottom($rad) {
+    -webkit-border-bottom-left-radius: $rad;
+    -webkit-border-bottom-right-radius: $rad;
+    -moz-border-radius-bottomleft: $rad;
+    -moz-border-radius-bottomright: $rad;
+    border-bottom-left-radius: $rad;
+    border-bottom-right-radius: $rad;
+}
+
+@mixin roundedx($rad) {
+    @include rounded_top($rad);
+    @include rounded_bottom($rad);
+}
+
+@mixin rounded {
+    @include roundedx($def_radius);
+}
+
+@mixin clear {
+    &:after {
+    	content: ".";
+    	display: block;
+    	height: 0;
+    	clear: both;
+    	visibility: hidden;
+    }
+}
+
+@mixin def_ul {
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+    padding-left: 10px;
+    li:before {
+        font-size: 1.6em;
+        position: relative;
+        top: 0.15em;
+        content: "\2022 \0020";
+    }
+    li {
+        text-indent: -10px;
+        margin-left: 0px;
+        padding: 0px;
+        padding-left: -10px;
+
+        ul {
+            margin-left: 20px;
+        }
+    }
+}
+
+// CSS RESET
+
+@import "reset";
+
+input::selection {background: transparent;}
+input::-moz-selection {background: transparent;}
+
+input {
+    margin: 0px;
+}
+
+img::selection {background: transparent;}
+img::-moz-selection {background: transparent;}
+
+abbr {
+	cursor: help;
+}
+
+img {
+    max-width: none;
+}
+
+// CSS STYLES
+
 body {
 	background-color: lightblue;
 	height: 100%;
 	width: 100%;
+}
+
+ul {
+	@include def_ul;
 }

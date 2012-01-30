@@ -4,6 +4,7 @@ class Node
     constructor: (@el, @type) ->
         @children = []
         @load_children()
+        @parent = null
 
     # traverse dom children of 'child' types and add them as children to this
     # node
@@ -16,7 +17,9 @@ class Node
     # or whether it is a node with content
     load_node_based_on_class: (el) ->
         if el.hasClass('childNode')
-            return new FlowerNode(el)
+            child = new FlowerNode(el)
         else if el.hasClass('childContent')
-            return new ContentNode(el)
+            child = new ContentNode(el)
+        child.parent = @
+        return child
 

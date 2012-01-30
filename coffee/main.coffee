@@ -4,9 +4,11 @@ $ ->
     opts =
         node_color: '#fff'
 
+    # set body height explicitly so it can be a valid flower container
     $('body').css({'height': $(window).outerHeight() + 'px'})
+
+    # initialize flower nav
     f = new Flower($('#flowerRoot'), $('body'), opts)
-    log $('body').outerHeight()
-    log $(window).outerHeight()
-    log f.main_node
+
+    # render flower to canvas
     f.build()

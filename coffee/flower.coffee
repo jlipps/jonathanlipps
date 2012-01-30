@@ -1,11 +1,21 @@
 class Flower
     constructor: (@root_el, @container_el, @opts) ->
+        # construct main node (which also constructs child nodes recursively)
         @main_node = new FlowerNode(@root_el)
-        @paper = Raphael(@container_el.offset().left, @container_el.offset().top, @container_el.width(), @container_el.outerHeight())
-        @center = [@container_el.width() / 2, @container_el.outerHeight() / 2]
+        log @main_node
+
+        # ensure that the container div doesn't show scroll bars
+        @container_el.css
+            overflow: 'hidden'
+
+        # set up canvas to be height/width of container element
+        @p_width = @container_el.width()
+        @p_height = @container_el.height()
+        @paper = Raphael(0, 0, @p_width, @p_height)
+
+        # grab center point (x,y) for future reference
+        @p_center = [@p_width / 2, @p_height / 2]
 
     build: ->
-        log @center
-        @main_node_p = @paper.circle(@center[0], @center[1], 50)
-        @main_node_p.attr("fill", @opts.node_color)
+        @main_node.build(@p_center, @opts, @paper, 50)
 
