@@ -8,20 +8,20 @@ class FlowerNode extends Node
         if not @distance?
             @distance = 150
 
-        # draw stem
+        # draw stem using SVG path description
         if @parent
             @p_stem = paper.path("M#{@parent.center_xy[0]},#{@parent.center_xy[1]}L#{center_xy[0]},#{center_xy[1]}")
         else
-            log "M#{center_xy[0]},10000L#{center_xy[0]}#{center_xy[1]}"
             @p_stem = paper.path("M#{center_xy[0]},10000L#{center_xy[0]},#{center_xy[1]}")
+
         # push stems behind circles always
         @p_stem.toBack()
 
-        # draw circle
+        # draw circle and set attributes
         @p_node = paper.circle(center_xy[0], center_xy[1], radius)
         @p_node.attr("fill", opts.node_color)
 
-        # hook up event handler
+        # hook up click handler
         @p_node.click =>
             if @children_shown
                 @unbuild_children()
@@ -36,16 +36,19 @@ class FlowerNode extends Node
         @children_shown = true
 
     unbuild_children: ->
-        log 'unbilding children'
-        log @
         for child in @children
             if child.type is 'flower'
+                # don't unbind children if they haven't been clicked open yet
                 if child.children_shown
                     child.unbuild_children()
+
+                # remove elements from paper and set nodes to none
                 child.p_node.remove()
                 child.p_stem.remove()
                 child.p_node = null
                 child.p_stem = null
+
+        # flag that no children are shown for this node
         @children_shown = false
 
     get_center_for_child: (i, offset_xy, distance) ->
@@ -55,7 +58,7 @@ class FlowerNode extends Node
         this_rad = (i+1) * rad_per_slice
         x = (distance * Math.sin(this_rad))
         y = (distance * Math.cos(this_rad))
-        log [x,y]
+        #log [x,y]
         x += offset_xy[0]
         y += offset_xy[1]
         return [x,y]

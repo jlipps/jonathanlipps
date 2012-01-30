@@ -114,7 +114,6 @@
       if (this.parent) {
         this.p_stem = paper.path("M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + "L" + center_xy[0] + "," + center_xy[1]);
       } else {
-        log("M" + center_xy[0] + ",10000L" + center_xy[0] + center_xy[1]);
         this.p_stem = paper.path("M" + center_xy[0] + ",10000L" + center_xy[0] + "," + center_xy[1]);
       }
       this.p_stem.toBack();
@@ -141,8 +140,6 @@
     };
     FlowerNode.prototype.unbuild_children = function() {
       var child, _i, _len, _ref;
-      log('unbilding children');
-      log(this);
       _ref = this.children;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         child = _ref[_i];
@@ -165,7 +162,6 @@
       this_rad = (i + 1) * rad_per_slice;
       x = distance * Math.sin(this_rad);
       y = distance * Math.cos(this_rad);
-      log([x, y]);
       x += offset_xy[0];
       y += offset_xy[1];
       return [x, y];
