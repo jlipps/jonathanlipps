@@ -2,7 +2,9 @@
 $ ->
     # construct a new flower object with the appropriate root
     opts =
-        node_color: '#fff'
+        node_color: '#fff',
+        node_radius: 0.045, # node radius is a percentage of screen width
+        node_distance: 150
 
     # set body height explicitly so it can be a valid flower container
     $('body').css({'height': $(window).outerHeight() + 'px'})

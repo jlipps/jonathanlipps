@@ -6,6 +6,9 @@ class Flower
 
         # ensure that the container div doesn't show scroll bars
         @container_el.css
+            position: 'absolute'
+            top: '0px'
+            left: '0px'
             overflow: 'hidden'
 
         # set up canvas to be height/width of container element
@@ -16,6 +19,7 @@ class Flower
         # grab center point (x,y) for future reference
         @p_center = [@p_width / 2, @p_height / 2]
 
+
     build: ->
-        @main_node.build(@p_center, @opts, @paper, 50)
+        @main_node.build(@p_center, @opts, @paper, @p_height, @p_width)
 

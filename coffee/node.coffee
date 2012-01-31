@@ -5,6 +5,8 @@ class Node
         @children = []
         @load_children()
         @parent = null
+        @p_node = null
+        @p_stem = null
 
     # traverse dom children of 'child' types and add them as children to this
     # node
@@ -22,4 +24,17 @@ class Node
             child = new ContentNode(el)
         child.parent = @
         return child
+
+    has_flower_children: ->
+        log @flower_children()
+        return @flower_children().length > 0
+
+    has_children_shown: ->
+        shown = false
+        for child in @children
+            shown or= child.p_node isnt null
+        return shown
+
+    flower_children: ->
+        return (child for child in @children when child.type is 'flower')
 
