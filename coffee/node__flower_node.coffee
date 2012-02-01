@@ -75,7 +75,7 @@ class FlowerNode extends Node
                                 sibling.stop_removing = true
                                 sibling.clear_removal_flags_for_children()
                                 sibling.unbuild_children()
-                            sibling.p_node.attr({fill: '#fff'})
+                            sibling.p_node.attr({fill: '#fff', 'stroke-width': 1})
                         @parent.rotate_children_to(@)
                     @build_children()
                     @zoom_to(true)
@@ -178,7 +178,7 @@ class FlowerNode extends Node
                 child.build(@get_center_for_child(i, @center_xy, new_distance), @opts, @paper, @canvas_height, @canvas_width, @radius * 0.75, new_distance)
                 child.set_cur_deg()
                 log "build #{child.label}"
-        @p_node.attr({fill: '#e0e0e0'})
+        @p_node.attr({fill: '#e0e0e0', 'stroke-width': 2})
 
     zoom_to: (zooming_in) ->
         # zoom in viewport

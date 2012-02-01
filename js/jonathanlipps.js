@@ -253,7 +253,8 @@
                   sibling.unbuild_children();
                 }
                 sibling.p_node.attr({
-                  fill: '#fff'
+                  fill: '#fff',
+                  'stroke-width': 1
                 });
               }
               this.parent.rotate_children_to(this);
@@ -387,7 +388,8 @@
         }
       }
       return this.p_node.attr({
-        fill: '#e0e0e0'
+        fill: '#e0e0e0',
+        'stroke-width': 2
       });
     };
     FlowerNode.prototype.zoom_to = function(zooming_in) {
