@@ -72,8 +72,8 @@
     opts = {
       node_color: '#fff',
       stroke_color: '#777',
-      node_radius: 0.045,
-      node_distance: 150
+      node_radius: 0.055,
+      node_distance: 180
     };
     $('body').css({
       'height': $(window).outerHeight() + 'px'
@@ -252,6 +252,9 @@
                   sibling.clear_removal_flags_for_children();
                   sibling.unbuild_children();
                 }
+                sibling.p_node.attr({
+                  fill: '#fff'
+                });
               }
               this.parent.rotate_children_to(this);
             }
@@ -372,15 +375,20 @@
       return this.center_xy[0] < this.parent.center_xy[0];
     };
     FlowerNode.prototype.build_children = function() {
-      var child, i, new_distance, _len, _ref, _results;
+      var child, i, new_distance, _len, _ref;
       new_distance = this.distance * 0.9;
       _ref = this.children;
-      _results = [];
       for (i = 0, _len = _ref.length; i < _len; i++) {
         child = _ref[i];
-        _results.push(child.type === 'flower' ? (child.build(this.get_center_for_child(i, this.center_xy, new_distance), this.opts, this.paper, this.canvas_height, this.canvas_width, this.radius * 0.75, new_distance), child.set_cur_deg(), log("build " + child.label)) : void 0);
+        if (child.type === 'flower') {
+          child.build(this.get_center_for_child(i, this.center_xy, new_distance), this.opts, this.paper, this.canvas_height, this.canvas_width, this.radius * 0.75, new_distance);
+          child.set_cur_deg();
+          log("build " + child.label);
+        }
       }
-      return _results;
+      return this.p_node.attr({
+        fill: '#e0e0e0'
+      });
     };
     FlowerNode.prototype.zoom_to = function(zooming_in) {
       var new_h, new_w, r_cx, r_cy, x_off, y_off;
@@ -427,6 +435,9 @@
       this.p_text.remove();
       this.p_text = null;
       this.parent.p_node.toFront();
+      this.parent.p_node.attr({
+        fill: '#fff'
+      });
       this.parent.p_text.toFront();
       this.p_stem.animate({
         path: "M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + "L" + this.start_center_xy[0] + "," + this.start_center_xy[1]

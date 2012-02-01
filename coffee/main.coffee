@@ -4,8 +4,8 @@ $ ->
     opts =
         node_color: '#fff',
         stroke_color: '#777',
-        node_radius: 0.045, # node radius is a percentage of screen width
-        node_distance: 150
+        node_radius: 0.055, # node radius is a percentage of screen width
+        node_distance: 180
 
     # set body height explicitly so it can be a valid flower container
     $('body').css({'height': $(window).outerHeight() + 'px'})
