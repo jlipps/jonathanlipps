@@ -90,7 +90,7 @@ class FlowerNode extends Node
         if clockwise
             deg_per_slice = -1 * deg_per_slice
         for rs in [1..rotation_steps]
-            @children_rotation_step += 1
+            @children_rotation_step += if clockwise then -1 else 1
             for child, i in @flower_children()
                 if child.p_node isnt null
                     r_deg = deg_per_slice
@@ -111,7 +111,16 @@ class FlowerNode extends Node
 
     rotate_children_to: (node) ->
         cur_step = @children_rotation_step
-        @rotate_children(1, true)
+        if node.is_right_of_middle()
+            @rotate_children(1)
+        else if node.is_left_of_middle()
+            @rotate_children(1, true)
+
+    is_right_of_middle: ->
+        return @center_xy[0] > @parent.center_xy[0]
+
+    is_left_of_middle: ->
+        return @center_xy[0] < @parent.center_xy[0]
 
 
     build_children: ->

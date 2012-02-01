@@ -252,7 +252,7 @@
       }
       _results = [];
       for (rs = 1; 1 <= rotation_steps ? rs <= rotation_steps : rs >= rotation_steps; 1 <= rotation_steps ? rs++ : rs--) {
-        this.children_rotation_step += 1;
+        this.children_rotation_step += clockwise ? -1 : 1;
         _results.push((function() {
           var _len, _ref, _results2;
           _ref = this.flower_children();
@@ -281,7 +281,17 @@
     FlowerNode.prototype.rotate_children_to = function(node) {
       var cur_step;
       cur_step = this.children_rotation_step;
-      return this.rotate_children(1, true);
+      if (node.is_right_of_middle()) {
+        return this.rotate_children(1);
+      } else if (node.is_left_of_middle()) {
+        return this.rotate_children(1, true);
+      }
+    };
+    FlowerNode.prototype.is_right_of_middle = function() {
+      return this.center_xy[0] > this.parent.center_xy[0];
+    };
+    FlowerNode.prototype.is_left_of_middle = function() {
+      return this.center_xy[0] < this.parent.center_xy[0];
     };
     FlowerNode.prototype.build_children = function() {
       var child, i, new_distance, _len, _ref, _results;
