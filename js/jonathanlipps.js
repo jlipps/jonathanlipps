@@ -7,7 +7,7 @@
     child.prototype = new ctor;
     child.__super__ = parent.prototype;
     return child;
-  }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __slice = Array.prototype.slice;
   Flower = (function() {
     function Flower(root_el, container_el, opts) {
       this.root_el = root_el;
@@ -167,6 +167,8 @@
         this.start_center_xy = [this.center_xy[0], this.canvas_height + 1];
       }
       this.p_set = this.paper.set();
+      this.p_rset = this.paper.set();
+      this.hover_set = this.paper.set();
       if (this.parent) {
         this.p_stem = paper.path("M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + "L" + this.start_center_xy[0] + "," + this.start_center_xy[1]);
       } else {
@@ -174,9 +176,11 @@
       }
       this.p_stem.toBack();
       this.p_set.push(this.p_stem);
+      this.p_rset.push(this.p_stem);
       this.p_node = paper.circle(this.start_center_xy[0], this.start_center_xy[1], this.radius);
       this.p_node.attr("fill", this.opts.node_color);
       this.p_set.push(this.p_node);
+      this.p_rset.push(this.p_node);
       this.p_node.animate({
         cx: this.center_xy[0],
         cy: this.center_xy[1],
@@ -185,7 +189,6 @@
         var hover_off, hover_on;
         this.p_text = paper.text(this.center_xy[0], this.center_xy[1], this.label);
         this.p_set.push(this.p_text);
-        this.hover_set = this.paper.set();
         this.hover_set.push(this.p_node);
         this.hover_set.push(this.p_text);
         hover_on = __bind(function() {
@@ -236,11 +239,17 @@
         }, this.in_speed, ">");
       }
     };
-    FlowerNode.prototype.rotate_children = function(rotation_steps) {
-      var child, deg_per_slice, i, num_children, rs, total, _results;
+    FlowerNode.prototype.rotate_children = function(rotation_steps, clockwise) {
+      var child, deg_per_slice, i, num_children, r_deg, rs, total, _results;
+      if (clockwise == null) {
+        clockwise = false;
+      }
       num_children = this.flower_children().length;
       total = num_children + 1;
       deg_per_slice = 360 / total;
+      if (clockwise) {
+        deg_per_slice = -1 * deg_per_slice;
+      }
       _results = [];
       for (rs = 1; 1 <= rotation_steps ? rs <= rotation_steps : rs >= rotation_steps; 1 <= rotation_steps ? rs++ : rs--) {
         this.children_rotation_step += 1;
@@ -250,21 +259,19 @@
           _results2 = [];
           for (i = 0, _len = _ref.length; i < _len; i++) {
             child = _ref[i];
-            _results2.push(__bind(function(child, i) {
-              var r_deg;
-              if (child.p_node !== null) {
-                r_deg = deg_per_slice;
-                if (i === (num_children - ((this.children_rotation_step - 1) % num_children) - 1)) {
-                  r_deg += deg_per_slice;
-                }
-                child.cur_r_deg += r_deg;
-                log("r-" + child.cur_r_deg + "," + this.center_xy[0] + "," + this.center_xy[1] + " for " + child.label);
-                child.p_set.animate({
-                  transform: "r-" + child.cur_r_deg + "," + this.center_xy[0] + "," + this.center_xy[1]
-                }, 200, ">");
-                return child.set_new_center(i, this.children_rotation_step, num_children);
-              }
-            }, this)(child, i));
+            _results2.push(child.p_node !== null ? (r_deg = deg_per_slice, (clockwise && ((this.children_rotation_step - 1) % num_children) === i) || (!clockwise && (i === (num_children - ((this.children_rotation_step - 1) % num_children) - 1))) ? r_deg += deg_per_slice : void 0, child.cur_r_deg += r_deg, __bind(function(child, i, r_deg) {
+              var anim_args, main_rotation_transform, text_rotation_transform, _ref2, _ref3;
+              log("" + child.label + " + " + i);
+              main_rotation_transform = "r" + (-1 * child.cur_r_deg) + "," + this.center_xy[0] + "," + this.center_xy[1];
+              text_rotation_transform = "" + main_rotation_transform + "R" + child.cur_r_deg;
+              anim_args = [200, ">"];
+              (_ref2 = child.p_rset).animate.apply(_ref2, [{
+                transform: main_rotation_transform
+              }].concat(__slice.call(anim_args)));
+              return (_ref3 = child.p_text).animate.apply(_ref3, [{
+                transform: text_rotation_transform
+              }].concat(__slice.call(anim_args)));
+            }, this)(child, i, r_deg), child.set_new_center(i, this.children_rotation_step, num_children)) : void 0);
           }
           return _results2;
         }).call(this));
@@ -274,7 +281,7 @@
     FlowerNode.prototype.rotate_children_to = function(node) {
       var cur_step;
       cur_step = this.children_rotation_step;
-      return this.rotate_children(1);
+      return this.rotate_children(1, true);
     };
     FlowerNode.prototype.build_children = function() {
       var child, i, new_distance, _len, _ref, _results;
@@ -383,16 +390,13 @@
       return cur_rad;
     };
     FlowerNode.prototype.set_cur_deg = function() {
-      this.deg = rad2deg(this.get_cur_rad());
-      return log("Current angle for " + this.label + " is " + this.deg + " degrees");
+      return this.deg = rad2deg(this.get_cur_rad());
     };
     FlowerNode.prototype.set_new_center = function(i, rot_step, num_children) {
       var new_i;
-      log([i, rot_step, num_children]);
       new_i = (i + rot_step) % num_children;
-      log("New i for node " + this.label + " is " + new_i);
       this.center_xy = this.parent.get_center_for_child(new_i, this.parent.center_xy, this.distance);
-      return this.set_cur_deg();
+      return log("New center for " + this.label + " is " + this.center_xy);
     };
     return FlowerNode;
   })();

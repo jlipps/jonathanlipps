@@ -22,6 +22,8 @@ class FlowerNode extends Node
             @start_center_xy = [@center_xy[0], @canvas_height + 1]
 
         @p_set = @paper.set()
+        @p_rset = @paper.set()
+        @hover_set = @paper.set()
 
         # draw stem using SVG path description
         if @parent
@@ -32,17 +34,18 @@ class FlowerNode extends Node
         # push stems behind circles always
         @p_stem.toBack()
         @p_set.push(@p_stem)
+        @p_rset.push(@p_stem)
 
         # draw circle and set attributes
         @p_node = paper.circle(@start_center_xy[0], @start_center_xy[1], @radius)
         @p_node.attr("fill", @opts.node_color)
         @p_set.push(@p_node)
+        @p_rset.push(@p_node)
 
         # animate
         @p_node.animate({cx: @center_xy[0], cy: @center_xy[1], r: @radius}, @in_speed, ">", () =>
             @p_text = paper.text(@center_xy[0], @center_xy[1], @label)
             @p_set.push(@p_text)
-            @hover_set = @paper.set()
             @hover_set.push(@p_node)
             @hover_set.push(@p_text)
             # create glow on hover
@@ -80,36 +83,35 @@ class FlowerNode extends Node
             @parent.p_text.toFront()
             @p_stem.animate({path: "M#{@parent.center_xy[0]},#{@parent.center_xy[1]}L#{@center_xy[0]},#{@center_xy[1]}"}, @in_speed, ">")
 
-    rotate_children: (rotation_steps) ->
+    rotate_children: (rotation_steps, clockwise=false) ->
         num_children = @flower_children().length
         total = num_children + 1
         deg_per_slice = 360 / total
+        if clockwise
+            deg_per_slice = -1 * deg_per_slice
         for rs in [1..rotation_steps]
             @children_rotation_step += 1
             for child, i in @flower_children()
-                do (child, i) =>
-                    if child.p_node isnt null
-                        r_deg = deg_per_slice
-                        if i is (num_children - ((@children_rotation_step-1) % num_children) - 1)
-                            r_deg += deg_per_slice
-                        child.cur_r_deg += r_deg
-                        log "r-#{child.cur_r_deg},#{@center_xy[0]},#{@center_xy[1]} for #{child.label}"
-                        #child.p_node.transform("r#{-1*deg*rs},#{@center_xy[0]},#{@center_xy[1]}")
-                        #child.p_stem.transform("r#{-1*deg*rs},#{@center_xy[0]},#{@center_xy[1]}")
-                        #child.p_set.transform("r-#{child.cur_r_deg},#{@center_xy[0]},#{@center_xy[1]}")
-                        #log child.p_set.attr('rotation')
-                        child.p_set.animate({transform: "r-#{child.cur_r_deg},#{@center_xy[0]},#{@center_xy[1]}"}, 200, ">")
-                        child.set_new_center(i, @children_rotation_step, num_children)
-                        #child.p_node.attr({cx: child.center_xy[0], cy: child.center_xy[1]})
-                        #child.p_text.attr({text: "#{child.label}\n#{child.center_xy[0]},#{child.center_xy[1]}"})
-                        #child.p_text = @paper.text(child.center_xy[0], child.center_xy[1], "#{child.label}\n#{child.center_xy[0]},#{child.center_xy[1]}")
-                        #child.hover_set.rotate(deg, child.center_xy[0], child.center_xy[1])
+                if child.p_node isnt null
+                    r_deg = deg_per_slice
+                    if (clockwise and ((@children_rotation_step-1) % num_children) is i) or (not clockwise and (i is (num_children - ((@children_rotation_step-1) % num_children) - 1)))
+                        r_deg += deg_per_slice
+                    child.cur_r_deg += r_deg
+                    do (child, i, r_deg) =>
+                        log "#{child.label} + #{i}"
+                        main_rotation_transform = "r#{-1*child.cur_r_deg},#{@center_xy[0]},#{@center_xy[1]}"
+                        text_rotation_transform = "#{main_rotation_transform}R#{child.cur_r_deg}"
+                        anim_args = [200, ">"]
+                        child.p_rset.animate({transform: main_rotation_transform}, anim_args...)
+                        child.p_text.animate({transform: text_rotation_transform}, anim_args...)
+                    child.set_new_center(i, @children_rotation_step, num_children)
+
 
 
 
     rotate_children_to: (node) ->
         cur_step = @children_rotation_step
-        @rotate_children(1)
+        @rotate_children(1, true)
 
 
     build_children: ->
@@ -225,12 +227,13 @@ class FlowerNode extends Node
 
     set_cur_deg: ->
         @deg = rad2deg(@get_cur_rad())
-        log "Current angle for #{@label} is #{@deg} degrees"
+        #log "Current angle for #{@label} is #{@deg} degrees"
 
     set_new_center: (i, rot_step, num_children) ->
-        log [i, rot_step, num_children]
+        #log [i, rot_step, num_children]
         new_i = (i + rot_step) % (num_children)
-        log "New i for node #{@label} is #{new_i}"
+        #log "New i for node #{@label} is #{new_i}"
         @center_xy = @parent.get_center_for_child(new_i, @parent.center_xy, @distance)
-        @set_cur_deg()
+        log "New center for #{@label} is #{@center_xy}"
+        #@set_cur_deg()
 
