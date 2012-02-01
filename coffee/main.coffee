@@ -3,6 +3,7 @@ $ ->
     # construct a new flower object with the appropriate root
     opts =
         node_color: '#fff',
+        stroke_color: '#777',
         node_radius: 0.045, # node radius is a percentage of screen width
         node_distance: 150
 

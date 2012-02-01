@@ -1,5 +1,5 @@
 (function() {
-  var ContentNode, Flower, FlowerNode, Node, deg2rad, log, rad2deg;
+  var ContentNode, Flower, FlowerNode, Node, deg2rad, dist_between_i, log, next_i, prev_i, rad2deg;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -42,10 +42,36 @@
   rad2deg = function(r) {
     return 180 * r / Math.PI;
   };
+  next_i = function(cur_i, max_i) {
+    return (cur_i + 1) % (max_i + 1);
+  };
+  prev_i = function(cur_i, max_i) {
+    if (cur_i > 0) {
+      return cur_i - 1;
+    } else {
+      return max_i;
+    }
+  };
+  dist_between_i = function(i1, i2, max_i, next) {
+    var dist, dist_step, i_inc;
+    if (next == null) {
+      next = true;
+    }
+    i_inc = next ? next_i : prev_i;
+    dist = 0;
+    for (dist_step = 0; 0 <= max_i ? dist_step <= max_i : dist_step >= max_i; 0 <= max_i ? dist_step++ : dist_step--) {
+      if (i1 !== i2) {
+        i1 = i_inc(i1, max_i);
+        dist += 1;
+      }
+    }
+    return dist;
+  };
   $(function() {
     var f, opts;
     opts = {
       node_color: '#fff',
+      stroke_color: '#777',
       node_radius: 0.045,
       node_distance: 150
     };
@@ -174,11 +200,17 @@
       } else {
         this.p_stem = paper.path("M" + this.start_center_xy[0] + "," + (this.start_center_xy[1] + this.canvas_height / 2) + "L" + this.start_center_xy[0] + "," + this.start_center_xy[1]);
       }
+      this.p_stem.attr({
+        stroke: this.opts.stroke_color
+      });
       this.p_stem.toBack();
       this.p_set.push(this.p_stem);
       this.p_rset.push(this.p_stem);
       this.p_node = paper.circle(this.start_center_xy[0], this.start_center_xy[1], this.radius);
-      this.p_node.attr("fill", this.opts.node_color);
+      this.p_node.attr({
+        fill: this.opts.node_color,
+        stroke: this.opts.stroke_color
+      });
       this.p_set.push(this.p_node);
       this.p_rset.push(this.p_node);
       this.p_node.animate({
@@ -187,7 +219,7 @@
         r: this.radius
       }, this.in_speed, ">", __bind(function() {
         var hover_off, hover_on;
-        this.p_text = paper.text(this.center_xy[0], this.center_xy[1], this.label);
+        this.p_text = paper.text(this.center_xy[0], this.center_xy[1], "" + this.label);
         this.p_set.push(this.p_text);
         this.hover_set.push(this.p_node);
         this.hover_set.push(this.p_text);
@@ -204,6 +236,7 @@
         this.hover_set.hover(hover_on, hover_off);
         return this.hover_set.click(__bind(function() {
           var sibling, _i, _len, _ref4;
+          log("" + this.label + " was clicked!");
           if (this.has_children_shown()) {
             this.stop_removing = true;
             this.clear_removal_flags_for_children();
@@ -240,28 +273,40 @@
       }
     };
     FlowerNode.prototype.rotate_children = function(rotation_steps, clockwise) {
-      var child, deg_per_slice, i, num_children, r_deg, rs, total, _results;
+      var child, deg_per_slice, double_cc_i, double_cw_i, i, max_child_i, num_children, r_deg, rs, step_amt, total, _len, _ref, _results;
       if (clockwise == null) {
         clockwise = false;
       }
       num_children = this.flower_children().length;
+      max_child_i = num_children - 1;
       total = num_children + 1;
       deg_per_slice = 360 / total;
+      step_amt = clockwise ? -1 : 1;
       if (clockwise) {
         deg_per_slice = -1 * deg_per_slice;
       }
       _results = [];
       for (rs = 1; 1 <= rotation_steps ? rs <= rotation_steps : rs >= rotation_steps; 1 <= rotation_steps ? rs++ : rs--) {
-        this.children_rotation_step += clockwise ? -1 : 1;
-        _results.push((function() {
-          var _len, _ref, _results2;
-          _ref = this.flower_children();
-          _results2 = [];
-          for (i = 0, _len = _ref.length; i < _len; i++) {
-            child = _ref[i];
-            _results2.push(child.p_node !== null ? (r_deg = deg_per_slice, (clockwise && ((this.children_rotation_step - 1) % num_children) === i) || (!clockwise && (i === (num_children - ((this.children_rotation_step - 1) % num_children) - 1))) ? r_deg += deg_per_slice : void 0, child.cur_r_deg += r_deg, __bind(function(child, i, r_deg) {
+        if (this.children_rotation_step > 0) {
+          double_cc_i = max_child_i - (this.children_rotation_step % (max_child_i + 1));
+          double_cw_i = next_i(double_cc_i, max_child_i);
+        } else {
+          double_cw_i = Math.abs(this.children_rotation_step) % (max_child_i + 1);
+          double_cc_i = prev_i(double_cw_i, max_child_i);
+        }
+        log("Double CC index is " + double_cc_i + ", Double CW index is " + double_cw_i);
+        _ref = this.flower_children();
+        for (i = 0, _len = _ref.length; i < _len; i++) {
+          child = _ref[i];
+          if (child.p_node !== null) {
+            r_deg = deg_per_slice;
+            if ((clockwise && i === double_cw_i) || (!clockwise && i === double_cc_i)) {
+              r_deg += deg_per_slice;
+              log("" + child.label + " (" + i + ") is one that will jump " + (clockwise ? 'clockwise' : 'counter-clockwise') + " (RS was " + this.children_rotation_step + ")");
+            }
+            child.cur_r_deg += r_deg;
+            __bind(function(child, i, r_deg) {
               var anim_args, main_rotation_transform, text_rotation_transform, _ref2, _ref3;
-              log("" + child.label + " + " + i);
               main_rotation_transform = "r" + (-1 * child.cur_r_deg) + "," + this.center_xy[0] + "," + this.center_xy[1];
               text_rotation_transform = "" + main_rotation_transform + "R" + child.cur_r_deg;
               anim_args = [200, ">"];
@@ -271,21 +316,54 @@
               return (_ref3 = child.p_text).animate.apply(_ref3, [{
                 transform: text_rotation_transform
               }].concat(__slice.call(anim_args)));
-            }, this)(child, i, r_deg), child.set_new_center(i, this.children_rotation_step, num_children)) : void 0);
+            }, this)(child, i, r_deg);
+            child.set_new_center(i, this.children_rotation_step + step_amt, num_children);
           }
-          return _results2;
-        }).call(this));
+        }
+        _results.push(this.children_rotation_step += step_amt);
       }
       return _results;
     };
-    FlowerNode.prototype.rotate_children_to = function(node) {
-      var cur_step;
-      cur_step = this.children_rotation_step;
-      if (node.is_right_of_middle()) {
-        return this.rotate_children(1);
-      } else if (node.is_left_of_middle()) {
-        return this.rotate_children(1, true);
+    FlowerNode.prototype.node_index = function() {
+      if (this.parent) {
+        return this.parent.children.indexOf(this);
+      } else {
+        return 0;
       }
+    };
+    FlowerNode.prototype.rotate_children_to = function(node) {
+      var center_i, cur_normalized_step, dist, even_children, i, num_children, sign;
+      num_children = this.flower_children().length;
+      i = node.node_index();
+      sign = this.children_rotation_step < 0 ? -1 : 1;
+      cur_normalized_step = sign * (Math.abs(this.children_rotation_step) % num_children);
+      log("Normalized step is " + cur_normalized_step);
+      even_children = num_children % 2 === 0 ? true : false;
+      center_i = Math.floor(num_children / 2) - cur_normalized_step;
+      if (center_i < 0) {
+        center_i = num_children + (center_i % num_children);
+      }
+      if (center_i >= num_children) {
+        center_i = center_i % num_children;
+      }
+      log("Center i is " + center_i);
+      if (!node.is_middle()) {
+        if (node.is_right_of_middle()) {
+          dist = dist_between_i(i, center_i, num_children - 1);
+          log("Dist is " + dist);
+          return this.rotate_children(dist);
+        } else if (node.is_left_of_middle()) {
+          dist = dist_between_i(i, center_i, num_children - 1, false);
+          log("Dist is " + dist);
+          return this.rotate_children(dist, true);
+        }
+      }
+    };
+    FlowerNode.prototype.is_middle = function() {
+      var diff;
+      diff = Math.abs(this.center_xy[0] - this.parent.center_xy[0]);
+      log(diff);
+      return diff <= 1;
     };
     FlowerNode.prototype.is_right_of_middle = function() {
       return this.center_xy[0] > this.parent.center_xy[0];
@@ -386,7 +464,6 @@
       this_rad = (i + 1) * rad_per_slice;
       x = distance * Math.sin(this_rad);
       y = distance * Math.cos(this_rad);
-      log([x, y]);
       x += offset_xy[0];
       y += offset_xy[1];
       return [x, y];
@@ -395,7 +472,6 @@
       var cur_rad, offset_x, offset_y;
       offset_x = this.center_xy[0] - this.parent.center_xy[0];
       offset_y = this.center_xy[1] - this.parent.center_xy[1];
-      log([offset_x, offset_y]);
       cur_rad = Math.asin(offset_x / this.distance);
       return cur_rad;
     };
@@ -405,8 +481,10 @@
     FlowerNode.prototype.set_new_center = function(i, rot_step, num_children) {
       var new_i;
       new_i = (i + rot_step) % num_children;
-      this.center_xy = this.parent.get_center_for_child(new_i, this.parent.center_xy, this.distance);
-      return log("New center for " + this.label + " is " + this.center_xy);
+      if (new_i < 0) {
+        new_i = num_children + new_i;
+      }
+      return this.center_xy = this.parent.get_center_for_child(new_i, this.parent.center_xy, this.distance);
     };
     return FlowerNode;
   })();

@@ -31,6 +31,8 @@ class FlowerNode extends Node
         else
             @p_stem = paper.path("M#{@start_center_xy[0]},#{@start_center_xy[1]+@canvas_height/2}L#{@start_center_xy[0]},#{@start_center_xy[1]}")
 
+        @p_stem.attr({stroke: @opts.stroke_color})
+
         # push stems behind circles always
         @p_stem.toBack()
         @p_set.push(@p_stem)
@@ -38,13 +40,13 @@ class FlowerNode extends Node
 
         # draw circle and set attributes
         @p_node = paper.circle(@start_center_xy[0], @start_center_xy[1], @radius)
-        @p_node.attr("fill", @opts.node_color)
+        @p_node.attr({fill: @opts.node_color, stroke: @opts.stroke_color})
         @p_set.push(@p_node)
         @p_rset.push(@p_node)
 
         # animate
         @p_node.animate({cx: @center_xy[0], cy: @center_xy[1], r: @radius}, @in_speed, ">", () =>
-            @p_text = paper.text(@center_xy[0], @center_xy[1], @label)
+            @p_text = paper.text(@center_xy[0], @center_xy[1], "#{@label}")
             @p_set.push(@p_text)
             @hover_set.push(@p_node)
             @hover_set.push(@p_text)
@@ -59,6 +61,7 @@ class FlowerNode extends Node
             @hover_set.hover(hover_on, hover_off)
             # hook up click handler
             @hover_set.click =>
+                log "#{@label} was clicked!"
                 if @has_children_shown()
                     @stop_removing = true
                     # need to remove 'stop_removing' flag from any children or they won't close
@@ -85,36 +88,79 @@ class FlowerNode extends Node
 
     rotate_children: (rotation_steps, clockwise=false) ->
         num_children = @flower_children().length
+        max_child_i = num_children - 1
         total = num_children + 1
         deg_per_slice = 360 / total
+        step_amt = if clockwise then -1 else 1
         if clockwise
             deg_per_slice = -1 * deg_per_slice
         for rs in [1..rotation_steps]
-            @children_rotation_step += if clockwise then -1 else 1
+            # need to figure out if this node is the one which needs a double rotation
+            if @children_rotation_step > 0
+                double_cc_i = max_child_i - (@children_rotation_step % (max_child_i+1))
+                double_cw_i = next_i(double_cc_i, max_child_i)
+            else
+                double_cw_i = Math.abs(@children_rotation_step) % (max_child_i+1)
+                double_cc_i = prev_i(double_cw_i, max_child_i)
+
+            log "Double CC index is #{double_cc_i}, Double CW index is #{double_cw_i}"
+
             for child, i in @flower_children()
                 if child.p_node isnt null
                     r_deg = deg_per_slice
-                    if (clockwise and ((@children_rotation_step-1) % num_children) is i) or (not clockwise and (i is (num_children - ((@children_rotation_step-1) % num_children) - 1)))
+                    if (clockwise and i is double_cw_i) or (not clockwise and i is double_cc_i)
                         r_deg += deg_per_slice
+                        log "#{child.label} (#{i}) is one that will jump #{if clockwise then 'clockwise' else 'counter-clockwise'} (RS was #{@children_rotation_step})"
                     child.cur_r_deg += r_deg
                     do (child, i, r_deg) =>
-                        log "#{child.label} + #{i}"
                         main_rotation_transform = "r#{-1*child.cur_r_deg},#{@center_xy[0]},#{@center_xy[1]}"
                         text_rotation_transform = "#{main_rotation_transform}R#{child.cur_r_deg}"
                         anim_args = [200, ">"]
                         child.p_rset.animate({transform: main_rotation_transform}, anim_args...)
                         child.p_text.animate({transform: text_rotation_transform}, anim_args...)
-                    child.set_new_center(i, @children_rotation_step, num_children)
+                    child.set_new_center(i, @children_rotation_step + step_amt, num_children)
+            @children_rotation_step += step_amt
+
+
+    node_index: ->
+        if @parent
+            return @parent.children.indexOf(@)
+        else
+            return 0
 
 
 
 
     rotate_children_to: (node) ->
-        cur_step = @children_rotation_step
-        if node.is_right_of_middle()
-            @rotate_children(1)
-        else if node.is_left_of_middle()
-            @rotate_children(1, true)
+        num_children = @flower_children().length
+        i = node.node_index()
+        sign = if @children_rotation_step < 0 then -1 else 1
+        cur_normalized_step = sign * (Math.abs(@children_rotation_step) % num_children)
+        log "Normalized step is #{cur_normalized_step}"
+        even_children = if num_children % 2 == 0 then true else false
+
+        center_i = Math.floor(num_children / 2) - cur_normalized_step
+        if center_i < 0
+            center_i = num_children + (center_i % num_children)
+        if center_i >= num_children
+            center_i = center_i % num_children
+
+        log "Center i is #{center_i}"
+
+        if not node.is_middle()
+            if node.is_right_of_middle()
+                dist = dist_between_i(i, center_i, num_children-1)
+                log "Dist is #{dist}"
+                @rotate_children(dist)
+            else if node.is_left_of_middle()
+                dist = dist_between_i(i, center_i, num_children-1, false)
+                log "Dist is #{dist}"
+                @rotate_children(dist, true)
+
+    is_middle: ->
+        diff = Math.abs(@center_xy[0] - @parent.center_xy[0])
+        log diff
+        return diff <= 1
 
     is_right_of_middle: ->
         return @center_xy[0] > @parent.center_xy[0]
@@ -222,7 +268,7 @@ class FlowerNode extends Node
         this_rad = (i+1) * rad_per_slice
         x = (distance * Math.sin(this_rad))
         y = (distance * Math.cos(this_rad))
-        log [x,y]
+        #log [x,y]
         x += offset_xy[0]
         y += offset_xy[1]
         return [x,y]
@@ -230,7 +276,7 @@ class FlowerNode extends Node
     get_cur_rad: ->
         offset_x = @center_xy[0] - @parent.center_xy[0]
         offset_y = @center_xy[1] - @parent.center_xy[1]
-        log [offset_x, offset_y]
+        #log [offset_x, offset_y]
         cur_rad = Math.asin(offset_x / @distance)
         return cur_rad
 
@@ -241,8 +287,10 @@ class FlowerNode extends Node
     set_new_center: (i, rot_step, num_children) ->
         #log [i, rot_step, num_children]
         new_i = (i + rot_step) % (num_children)
+        if new_i < 0
+            new_i = num_children + new_i
         #log "New i for node #{@label} is #{new_i}"
         @center_xy = @parent.get_center_for_child(new_i, @parent.center_xy, @distance)
-        log "New center for #{@label} is #{@center_xy}"
+        #log "New center for #{@label} is #{@center_xy}"
         #@set_cur_deg()
 
