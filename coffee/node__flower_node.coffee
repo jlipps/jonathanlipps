@@ -4,6 +4,7 @@ class FlowerNode extends Node
         super(el, 'flower')
         @label = $('.nodeLabel', @el).html()
         @children_rotation_step = 0
+        @cur_r_deg = 0
 
     build: (@center_xy, @opts, @paper, @canvas_height, @canvas_width, @radius, @distance) ->
 
@@ -84,25 +85,26 @@ class FlowerNode extends Node
         total = num_children + 1
         deg_per_slice = 360 / total
         for rs in [1..rotation_steps]
+            @children_rotation_step += 1
             for child, i in @flower_children()
                 do (child, i) =>
                     if child.p_node isnt null
-                        if i is (num_children - (@children_rotation_step % num_children) - 1)
-                            deg = deg_per_slice*2
-                        else
-                            deg = deg_per_slice
-                        log "r#{-1*deg},#{@center_xy[0]},#{@center_xy[1]} for #{child.label}"
-                        child.p_node.transform("r#{-1*deg},#{@center_xy[0]},#{@center_xy[1]}")
-                        child.p_stem.transform("r#{-1*deg},#{@center_xy[0]},#{@center_xy[1]}")
-                        child.p_text.transform("r#{-1*deg},#{@center_xy[0]},#{@center_xy[1]}")
+                        r_deg = deg_per_slice
+                        if i is (num_children - ((@children_rotation_step-1) % num_children) - 1)
+                            r_deg += deg_per_slice
+                        child.cur_r_deg += r_deg
+                        log "r-#{child.cur_r_deg},#{@center_xy[0]},#{@center_xy[1]} for #{child.label}"
+                        #child.p_node.transform("r#{-1*deg*rs},#{@center_xy[0]},#{@center_xy[1]}")
+                        #child.p_stem.transform("r#{-1*deg*rs},#{@center_xy[0]},#{@center_xy[1]}")
+                        #child.p_set.transform("r-#{child.cur_r_deg},#{@center_xy[0]},#{@center_xy[1]}")
                         #log child.p_set.attr('rotation')
-                        #child.p_set.animate({rotation: "#{deg},#{@center_xy[0]},#{@center_xy[1]}"}, 200, ">")
-                        child.set_new_center(i, @children_rotation_step+1, num_children)
+                        child.p_set.animate({transform: "r-#{child.cur_r_deg},#{@center_xy[0]},#{@center_xy[1]}"}, 200, ">")
+                        child.set_new_center(i, @children_rotation_step, num_children)
                         #child.p_node.attr({cx: child.center_xy[0], cy: child.center_xy[1]})
                         #child.p_text.attr({text: "#{child.label}\n#{child.center_xy[0]},#{child.center_xy[1]}"})
                         #child.p_text = @paper.text(child.center_xy[0], child.center_xy[1], "#{child.label}\n#{child.center_xy[0]},#{child.center_xy[1]}")
                         #child.hover_set.rotate(deg, child.center_xy[0], child.center_xy[1])
-            @children_rotation_step += 1
+
 
 
     rotate_children_to: (node) ->
@@ -116,6 +118,7 @@ class FlowerNode extends Node
         for child, i in @children
             if child.type is 'flower'
                 child.build(@get_center_for_child(i, @center_xy, new_distance), @opts, @paper, @canvas_height, @canvas_width, @radius * 0.75, new_distance)
+                child.set_cur_deg()
                 log "build #{child.label}"
 
     zoom_to: (zooming_in) ->
@@ -215,12 +218,19 @@ class FlowerNode extends Node
 
     get_cur_rad: ->
         offset_x = @center_xy[0] - @parent.center_xy[0]
+        offset_y = @center_xy[1] - @parent.center_xy[1]
+        log [offset_x, offset_y]
         cur_rad = Math.asin(offset_x / @distance)
-        log "Current rad for #{@label} is: #{cur_rad}"
+        return cur_rad
+
+    set_cur_deg: ->
+        @deg = rad2deg(@get_cur_rad())
+        log "Current angle for #{@label} is #{@deg} degrees"
 
     set_new_center: (i, rot_step, num_children) ->
         log [i, rot_step, num_children]
         new_i = (i + rot_step) % (num_children)
         log "New i for node #{@label} is #{new_i}"
         @center_xy = @parent.get_center_for_child(new_i, @parent.center_xy, @distance)
+        @set_cur_deg()
 
