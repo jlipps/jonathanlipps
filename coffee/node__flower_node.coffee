@@ -15,6 +15,11 @@ class FlowerNode extends Node
         # we can accumulate rotation degrees for subsequent Raphael transforms
         @cur_rot_deg = 0
 
+        # Some FlowerNodes have urls, which means they are basically links
+        @url = null
+        if el.attr('data-url')
+            @url = el.attr('data-url')
+
     build: (@center_xy, @radius, @distance) ->
         # Set some convenience variables based on Flower options etc...
         [opts, p, p_height, p_width] = [@flower.opts, @flower.paper, @flower.p_height, @flower.p_width]
@@ -99,29 +104,32 @@ class FlowerNode extends Node
 
     on_click: =>
         log "#{@label} was clicked!"
-        if @has_children_shown()
-            # If this node has children shown, a click means 'hide them'!
-            @hide_children()
+        if @url
+            window.location.href = @url
         else
-            # If no children are shown, a click means 'show them'!
-            if @parent
-                # If this node has a sibling with children shown, we
-                # need to close them before opening this node's children
-                for sibling in @parent.flower_children
-                    if sibling.has_children_shown()
-                        sibling.hide_children()
-                    sibling.deselect()
+            if @has_children_shown()
+                # If this node has children shown, a click means 'hide them'!
+                @hide_children()
+            else
+                # If no children are shown, a click means 'show them'!
+                if @parent
+                    # If this node has a sibling with children shown, we
+                    # need to close them before opening this node's children
+                    for sibling in @parent.flower_children
+                        if sibling.has_children_shown()
+                            sibling.hide_children()
+                        sibling.deselect()
 
-                # Before opening this node's children, we need to rotate
-                # the flower so that this node is on top
-                @parent.rotate_children_to this
+                    # Before opening this node's children, we need to rotate
+                    # the flower so that this node is on top
+                    @parent.rotate_children_to this
 
-            # Finally, we need to select this node and build its children
-            @select()
-            @build_children()
+                # Finally, we need to select this node and build its children
+                @select()
+                @build_children()
 
-        # Zoom into the node we just selected
-        @zoom_to_node
+            # Zoom into the node we just selected
+            @zoom_to_node
 
     rotate_children: (rotation_steps, clockwise = false) ->
         num_children = @flower_children.length

@@ -172,6 +172,10 @@
       this.label = $('.nodeLabel', this.el).html();
       this.cur_rot_step = 0;
       this.cur_rot_deg = 0;
+      this.url = null;
+      if (el.attr('data-url')) {
+        this.url = el.attr('data-url');
+      }
     }
     FlowerNode.prototype.build = function(center_xy, radius, distance) {
       var in_speed, opts, out_speed, p, p_height, p_width, toline_text, _ref, _ref2, _ref3, _ref4;
@@ -259,24 +263,28 @@
     FlowerNode.prototype.on_click = function() {
       var sibling, _i, _len, _ref;
       log("" + this.label + " was clicked!");
-      if (this.has_children_shown()) {
-        this.hide_children();
+      if (this.url) {
+        return window.location.href = this.url;
       } else {
-        if (this.parent) {
-          _ref = this.parent.flower_children;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            sibling = _ref[_i];
-            if (sibling.has_children_shown()) {
-              sibling.hide_children();
+        if (this.has_children_shown()) {
+          this.hide_children();
+        } else {
+          if (this.parent) {
+            _ref = this.parent.flower_children;
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              sibling = _ref[_i];
+              if (sibling.has_children_shown()) {
+                sibling.hide_children();
+              }
+              sibling.deselect();
             }
-            sibling.deselect();
+            this.parent.rotate_children_to(this);
           }
-          this.parent.rotate_children_to(this);
+          this.select();
+          this.build_children();
         }
-        this.select();
-        this.build_children();
+        return this.zoom_to_node;
       }
-      return this.zoom_to_node;
     };
     FlowerNode.prototype.rotate_children = function(rotation_steps, clockwise) {
       var child, deg_per_slice, double_cc_i, double_cw_i, i, max_child_i, num_children, r_deg, rs, step_amt, _results;
