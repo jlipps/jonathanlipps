@@ -11,6 +11,7 @@ $ ->
         node_distance: 180
         node_in_speed: 150
         node_out_speed: 100
+        rotation_speed: 200
 
     # Set body height explicitly so it can be a valid flower container
     $('body').css({'height': $(window).outerHeight() + 'px'})

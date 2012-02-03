@@ -112,6 +112,8 @@ class FlowerNode extends Node
                 @hide_children()
             else
                 # If no children are shown, a click means 'show them'!
+                # First, select the node
+                @select()
                 if @parent
                     # If this node has a sibling with children shown, we
                     # need to close them before opening this node's children
@@ -122,11 +124,14 @@ class FlowerNode extends Node
 
                     # Before opening this node's children, we need to rotate
                     # the flower so that this node is on top
-                    @parent.rotate_children_to this
-
-                # Finally, we need to select this node and build its children
-                @select()
-                @build_children()
+                    @parent.rotate_children_to this, =>
+                        # After rotation animation, grow the selected child's
+                        # stem and build children from there
+                        @grow_and_build()
+                else
+                    # If there's no parent, we don't need to expand, just build
+                    # children
+                    @build_children()
 
             # Zoom into the node we just selected
             @zoom_to_node()
@@ -176,7 +181,7 @@ class FlowerNode extends Node
         # Get the index of this node in its parent's list of children
         if @parent then @parent.flower_children.indexOf(this) else 0
 
-    rotate_children_to: (node) ->
+    rotate_children_to: (node, callback) ->
         num_children = @flower_children.length
         i = node.node_index()
         [is_right, is_left] = [node.is_right_of_middle(), node.is_left_of_middle()]
@@ -216,13 +221,19 @@ class FlowerNode extends Node
             # the node is on. With this information we can actually perform the
             # rotation with the appropriate number of steps.
             if is_right
-                dist = dist_between_i i, center_i, num_children-1
-                log "Dist is #{dist}"
-                @rotate_children dist
+                @rotate_children dist_between_i(i, center_i, num_children - 1)
             else if is_left
-                dist = dist_between_i i, center_i, num_children-1, false
-                log "Dist is #{dist}"
-                @rotate_children dist, true
+                @rotate_children dist_between_i(i, center_i, num_children - 1, false), true
+
+            # It's hard to put a callback on @rotate_children since the callback
+            # would be called multiple times. Instead we simulate a post-
+            # animation callback by setting a timeout for the length of time we
+            # know the animation should take. This allows us to chain other
+            # behavior after the animation completes
+            setTimeout callback, @flower.opts.rotation_speed + 5
+        else
+            # If no rotation is required, call the callback immediately
+            callback()
 
     rotate_by: (r_deg) ->
         # The number of degrees to rotate the node by should be added to what is
@@ -233,10 +244,40 @@ class FlowerNode extends Node
         # An additional transform applies only to the text node since we want it
         # to rotate in the opposite direction in order to maintain its orientation
         text_rotation_transform = "#{main_rotation_transform}R#{@cur_rot_deg}"
-        anim_args = [200, ">"]
+        anim_args = [@flower.opts.rotation_speed, ">"]
         # We perform both animations simultaneously
         @p_rset.animate {transform: main_rotation_transform}, anim_args...
         @p_text.animate {transform: text_rotation_transform}, anim_args...
+
+    grow_and_build: ->
+        # First we need to determine the kind of growth that needs to happen.
+        # The options are either (a) straight up (in case of odd nodes, since
+        # we know that this node is now in the middle) or (b) up and around
+        # towards the middle (in the case of even nodes)
+        even_children = @parent.flower_children.length % 2 is 0
+        opts = @flower.opts
+        grow_anim_speed = opts.rotation_speed
+
+        end_xy = [@parent.center_xy[0], @parent.center_xy[1] - (@distance * 2)]
+
+        if even_children
+            [is_right, is_left] = [@is_right_of_middle(), @is_left_of_middle()]
+            x_off = @center_xy[0] - @parent.center_xy[0]
+            if is_left
+                @p_hoverset.animate {transform: "...T#{x_off},-#{@distance*1.5}"}, grow_anim_speed, ">"
+            else
+                @p_hoverset.animate {transform: "...T#{-1*x_off},-#{@distance*1.5}"}, grow_anim_speed, ">"
+                @p_stem.attr
+                    path: "#{@p_stem.attr 'path'}T#{@parent.center_xy[0]},#{@center_xy[1] - @distance*1.5}"
+        else
+            @p_hoverset.animate {transform: "...T0,-#{@distance}"}, grow_anim_speed, ">"
+
+
+        post_animation = =>
+            @build_children()
+
+        setTimeout post_animation, grow_anim_speed + 5
+
 
     is_middle: ->
         # This node is "in the middle" if its center x differs from its parent's
