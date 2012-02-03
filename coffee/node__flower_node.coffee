@@ -129,7 +129,7 @@ class FlowerNode extends Node
                 @build_children()
 
             # Zoom into the node we just selected
-            @zoom_to_node
+            @zoom_to_node()
 
     rotate_children: (rotation_steps, clockwise = false) ->
         num_children = @flower_children.length
@@ -179,6 +179,8 @@ class FlowerNode extends Node
     rotate_children_to: (node) ->
         num_children = @flower_children.length
         i = node.node_index()
+        [is_right, is_left] = [node.is_right_of_middle(), node.is_left_of_middle()]
+        even_children = num_children % 2 is 0
 
         # Since the current rotation step might be -22 even when there's only
         # say 4 or 5 nodes, we want to normalize it to get the smallest equvalent
@@ -196,6 +198,14 @@ class FlowerNode extends Node
         if center_i >= num_children
             center_i = center_i % num_children
 
+        # When we have even children, the center_i will always be the node on
+        # the top left. So if we have a node on the right side, we want to
+        # move it to top right position, not top left position (since top right)
+        # is closer. In this case we want to move an index down in the children
+        # index chain
+        if even_children and is_right
+            center_i = prev_i center_i, num_children - 1
+
         log "Center i is #{center_i}"
 
         # If the node we want to rotate to is already in center position, we
@@ -205,11 +215,11 @@ class FlowerNode extends Node
             # node based on their indices, and based on which side of center
             # the node is on. With this information we can actually perform the
             # rotation with the appropriate number of steps.
-            if node.is_right_of_middle()
+            if is_right
                 dist = dist_between_i i, center_i, num_children-1
                 log "Dist is #{dist}"
                 @rotate_children dist
-            else if node.is_left_of_middle()
+            else if is_left
                 dist = dist_between_i i, center_i, num_children-1, false
                 log "Dist is #{dist}"
                 @rotate_children dist, true
@@ -259,7 +269,7 @@ class FlowerNode extends Node
 
     zoom_to_node: ->
         new_w = @radius / @radius_pct
-        @flower.zoom_to(@center_xy..., new_w)
+        #@flower.zoom_to(@center_xy..., new_w)
 
 
     deselect: ->

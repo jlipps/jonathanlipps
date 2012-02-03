@@ -27,6 +27,7 @@ class Flower
         @main_node.build()
 
     zoom_to: (x, y, new_w) ->
+        log 'zooming'
         # zoom in viewport
         [r_cx, r_cy] = @v_center
         x_off = x - r_cx
@@ -34,7 +35,7 @@ class Flower
         new_h = new_w * @v_height / @v_width
         viewbox_x_off = x_off + (@v_width - new_w) / 2
         viewbox_y_off = y_off + (@v_height - new_h) / 2
-        #log [x_off, y_off, new_w, new_h]
+        log [x_off, y_off, new_w, new_h]
 
         @paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false)
         [@v_width, @v_height, @v_center] = [new_w, new_h, [x, y]]

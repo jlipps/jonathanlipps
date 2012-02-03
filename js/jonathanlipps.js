@@ -33,12 +33,14 @@
     };
     Flower.prototype.zoom_to = function(x, y, new_w) {
       var new_h, r_cx, r_cy, viewbox_x_off, viewbox_y_off, x_off, y_off, _ref, _ref2;
+      log('zooming');
       _ref = this.v_center, r_cx = _ref[0], r_cy = _ref[1];
       x_off = x - r_cx;
       y_off = y - r_cy;
       new_h = new_w * this.v_height / this.v_width;
       viewbox_x_off = x_off + (this.v_width - new_w) / 2;
       viewbox_y_off = y_off + (this.v_height - new_h) / 2;
+      log([x_off, y_off, new_w, new_h]);
       this.paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false);
       return _ref2 = [new_w, new_h, [x, y]], this.v_width = _ref2[0], this.v_height = _ref2[1], this.v_center = _ref2[2], _ref2;
     };
@@ -283,7 +285,7 @@
           this.select();
           this.build_children();
         }
-        return this.zoom_to_node;
+        return this.zoom_to_node();
       }
     };
     FlowerNode.prototype.rotate_children = function(rotation_steps, clockwise) {
@@ -333,9 +335,11 @@
       }
     };
     FlowerNode.prototype.rotate_children_to = function(node) {
-      var center_i, cur_normalized_step, dist, i, num_children, sign;
+      var center_i, cur_normalized_step, dist, even_children, i, is_left, is_right, num_children, sign, _ref;
       num_children = this.flower_children.length;
       i = node.node_index();
+      _ref = [node.is_right_of_middle(), node.is_left_of_middle()], is_right = _ref[0], is_left = _ref[1];
+      even_children = num_children % 2 === 0;
       sign = this.cur_rot_step < 0 ? -1 : 1;
       cur_normalized_step = sign * (Math.abs(this.cur_rot_step) % num_children);
       log("Normalized step is " + cur_normalized_step);
@@ -346,13 +350,16 @@
       if (center_i >= num_children) {
         center_i = center_i % num_children;
       }
+      if (even_children && is_right) {
+        center_i = prev_i(center_i, num_children - 1);
+      }
       log("Center i is " + center_i);
       if (i !== center_i) {
-        if (node.is_right_of_middle()) {
+        if (is_right) {
           dist = dist_between_i(i, center_i, num_children - 1);
           log("Dist is " + dist);
           return this.rotate_children(dist);
-        } else if (node.is_left_of_middle()) {
+        } else if (is_left) {
           dist = dist_between_i(i, center_i, num_children - 1, false);
           log("Dist is " + dist);
           return this.rotate_children(dist, true);
@@ -408,9 +415,8 @@
       return _results;
     };
     FlowerNode.prototype.zoom_to_node = function() {
-      var new_w, _ref;
-      new_w = this.radius / this.radius_pct;
-      return (_ref = this.flower).zoom_to.apply(_ref, __slice.call(this.center_xy).concat([new_w]));
+      var new_w;
+      return new_w = this.radius / this.radius_pct;
     };
     FlowerNode.prototype.deselect = function() {
       var o;
