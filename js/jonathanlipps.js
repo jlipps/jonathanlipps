@@ -13,8 +13,7 @@
       this.root_el = root_el;
       this.container_el = container_el;
       this.opts = opts;
-      this.main_node = new FlowerNode(this.root_el);
-      log(this.main_node);
+      this.main_node = new FlowerNode(this.root_el, this);
       this.container_el.css({
         position: 'absolute',
         top: '0px',
@@ -23,11 +22,25 @@
       });
       this.p_width = this.container_el.width();
       this.p_height = this.container_el.height();
+      this.v_width = this.p_width;
+      this.v_height = this.p_height;
       this.paper = Raphael(0, 0, this.p_width, this.p_height);
       this.p_center = [this.p_width / 2, this.p_height / 2];
+      this.v_center = this.p_center;
     }
     Flower.prototype.build = function() {
-      return this.main_node.build(this.p_center, this.opts, this.paper, this.p_height, this.p_width);
+      return this.main_node.build();
+    };
+    Flower.prototype.zoom_to = function(x, y, new_w) {
+      var new_h, r_cx, r_cy, viewbox_x_off, viewbox_y_off, x_off, y_off, _ref, _ref2;
+      _ref = this.v_center, r_cx = _ref[0], r_cy = _ref[1];
+      x_off = x - r_cx;
+      y_off = y - r_cy;
+      new_h = new_w * this.v_height / this.v_width;
+      viewbox_x_off = x_off + (this.v_width - new_w) / 2;
+      viewbox_y_off = y_off + (this.v_height - new_h) / 2;
+      this.paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false);
+      return _ref2 = [new_w, new_h, [x, y]], this.v_width = _ref2[0], this.v_height = _ref2[1], this.v_center = _ref2[2], _ref2;
     };
     return Flower;
   })();
@@ -71,9 +84,14 @@
     var f, opts;
     opts = {
       node_color: '#fff',
+      selected_node_color: '#e0e0e0',
       stroke_color: '#777',
+      stem_width: 1,
+      selected_stem_width: 2,
       node_radius: 0.055,
-      node_distance: 180
+      node_distance: 180,
+      node_in_speed: 150,
+      node_out_speed: 100
     };
     $('body').css({
       'height': $(window).outerHeight() + 'px'
@@ -82,47 +100,48 @@
     return f.build();
   });
   Node = (function() {
-    function Node(el, type) {
+    function Node(el, type, flower) {
       this.el = el;
       this.type = type;
-      this.children = [];
-      this.load_children();
+      this.flower = flower;
       this.parent = null;
       this.p_node = null;
       this.p_stem = null;
+      this.children = [];
+      this.flower_children = [];
+      this.load_children();
     }
     Node.prototype.load_children = function() {
-      var child_els, el, _i, _len, _ref, _results;
+      var child_els, el, node, _i, _len, _ref;
       child_els = this.el.children('.childNode, .childContent');
       _ref = (function() {
-        var _j, _len, _results2;
-        _results2 = [];
+        var _j, _len, _results;
+        _results = [];
         for (_j = 0, _len = child_els.length; _j < _len; _j++) {
           el = child_els[_j];
-          _results2.push($(el));
+          _results.push($(el));
         }
-        return _results2;
+        return _results;
       })();
-      _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         el = _ref[_i];
-        _results.push(this.children.push(this.load_node_based_on_class(el)));
+        node = this.load_node_based_on_class(el);
+        this.children.push(node);
+        if (node.type === 'flower') {
+          this.flower_children.push(node);
+        }
       }
-      return _results;
+      return this.has_flower_children = this.flower_children.length > 0;
     };
     Node.prototype.load_node_based_on_class = function(el) {
       var child;
       if (el.hasClass('childNode')) {
-        child = new FlowerNode(el);
+        child = new FlowerNode(el, this.flower);
       } else if (el.hasClass('childContent')) {
-        child = new ContentNode(el);
+        child = new ContentNode(el, this.flower);
       }
       child.parent = this;
       return child;
-    };
-    Node.prototype.has_flower_children = function() {
-      log(this.flower_children());
-      return this.flower_children().length > 0;
     };
     Node.prototype.has_children_shown = function() {
       var child, shown, _i, _len, _ref;
@@ -134,24 +153,12 @@
       }
       return shown;
     };
-    Node.prototype.flower_children = function() {
-      var child, _i, _len, _ref, _results;
-      _ref = this.children;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        child = _ref[_i];
-        if (child.type === 'flower') {
-          _results.push(child);
-        }
-      }
-      return _results;
-    };
     return Node;
   })();
   ContentNode = (function() {
     __extends(ContentNode, Node);
-    function ContentNode(el) {
-      ContentNode.__super__.constructor.call(this, el, 'content');
+    function ContentNode(el, flower) {
+      ContentNode.__super__.constructor.call(this, el, 'content', flower);
     }
     ContentNode.prototype.build = function(center_xy) {
       return null;
@@ -160,189 +167,170 @@
   })();
   FlowerNode = (function() {
     __extends(FlowerNode, Node);
-    function FlowerNode(el) {
-      FlowerNode.__super__.constructor.call(this, el, 'flower');
+    function FlowerNode(el, flower) {
+      this.on_click = __bind(this.on_click, this);      FlowerNode.__super__.constructor.call(this, el, 'flower', flower);
       this.label = $('.nodeLabel', this.el).html();
-      this.children_rotation_step = 0;
-      this.cur_r_deg = 0;
+      this.cur_rot_step = 0;
+      this.cur_rot_deg = 0;
     }
-    FlowerNode.prototype.build = function(center_xy, opts, paper, canvas_height, canvas_width, radius, distance) {
-      var _ref, _ref2, _ref3;
+    FlowerNode.prototype.build = function(center_xy, radius, distance) {
+      var in_speed, opts, out_speed, p, p_height, p_width, toline_text, _ref, _ref2, _ref3, _ref4;
       this.center_xy = center_xy;
-      this.opts = opts;
-      this.paper = paper;
-      this.canvas_height = canvas_height;
-      this.canvas_width = canvas_width;
       this.radius = radius;
       this.distance = distance;
-      if ((_ref = this.radius_pct) == null) {
-        this.radius_pct = this.opts.node_radius;
+      _ref = [this.flower.opts, this.flower.paper, this.flower.p_height, this.flower.p_width], opts = _ref[0], p = _ref[1], p_height = _ref[2], p_width = _ref[3];
+      if ((_ref2 = this.center_xy) == null) {
+        this.center_xy = this.flower.p_center;
       }
-      if ((_ref2 = this.radius) == null) {
-        this.radius = this.canvas_width * this.radius_pct;
+      this.radius_pct = opts.node_radius;
+      if ((_ref3 = this.radius) == null) {
+        this.radius = p_width * this.radius_pct;
       }
-      if ((_ref3 = this.distance) == null) {
-        this.distance = this.opts.node_distance;
+      if ((_ref4 = this.distance) == null) {
+        this.distance = opts.node_distance;
       }
-      this.in_speed = this.parent ? 150 : 300;
-      this.out_speed = 100;
+      in_speed = this.parent ? opts.node_in_speed : opts.node_in_speed * 2;
+      out_speed = opts.node_out_speed;
       this.start_radius = 1;
       if (this.parent) {
         this.start_center_xy = this.parent.center_xy;
       } else {
-        this.start_center_xy = [this.center_xy[0], this.canvas_height + 1];
+        this.start_center_xy = [this.center_xy[0], p_height + 1];
       }
-      this.p_set = this.paper.set();
-      this.p_rset = this.paper.set();
-      this.hover_set = this.paper.set();
-      if (this.parent) {
-        this.p_stem = paper.path("M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + "L" + this.start_center_xy[0] + "," + this.start_center_xy[1]);
-      } else {
-        this.p_stem = paper.path("M" + this.start_center_xy[0] + "," + (this.start_center_xy[1] + this.canvas_height / 2) + "L" + this.start_center_xy[0] + "," + this.start_center_xy[1]);
-      }
+      this.p_set = p.set();
+      this.p_rset = p.set();
+      this.p_hoverset = p.set();
+      this.p_stem = p.path("M" + this.start_center_xy[0] + "," + this.start_center_xy[1] + "L" + this.start_center_xy[0] + "," + this.start_center_xy[1]);
       this.p_stem.attr({
-        stroke: this.opts.stroke_color
+        stroke: opts.stroke_color,
+        'stroke-width': opts.stem_width
       });
       this.p_stem.toBack();
       this.p_set.push(this.p_stem);
       this.p_rset.push(this.p_stem);
-      this.p_node = paper.circle(this.start_center_xy[0], this.start_center_xy[1], this.radius);
+      this.p_node = p.circle(this.start_center_xy[0], this.start_center_xy[1], this.radius);
       this.p_node.attr({
-        fill: this.opts.node_color,
-        stroke: this.opts.stroke_color
+        fill: opts.node_color,
+        stroke: opts.stroke_color,
+        'stroke-width': opts.stem_width
       });
       this.p_set.push(this.p_node);
       this.p_rset.push(this.p_node);
+      this.p_hoverset.push(this.p_node);
       this.p_node.animate({
         cx: this.center_xy[0],
         cy: this.center_xy[1],
         r: this.radius
-      }, this.in_speed, ">", __bind(function() {
-        var hover_off, hover_on;
-        this.p_text = paper.text(this.center_xy[0], this.center_xy[1], "" + this.label);
+      }, in_speed, ">", __bind(function() {
+        var _ref5;
+        this.p_text = p.text(this.center_xy[0], this.center_xy[1], "" + this.label);
         this.p_set.push(this.p_text);
-        this.hover_set.push(this.p_node);
-        this.hover_set.push(this.p_text);
-        hover_on = __bind(function() {
-          return this.p_node_glow = this.p_node.glow({
-            color: 'blue',
-            width: 7,
-            opacity: 0.3
-          });
-        }, this);
-        hover_off = __bind(function() {
-          return this.p_node_glow.remove();
-        }, this);
-        this.hover_set.hover(hover_on, hover_off);
-        return this.hover_set.click(__bind(function() {
-          var sibling, _i, _len, _ref4;
-          log("" + this.label + " was clicked!");
-          if (this.has_children_shown()) {
-            this.stop_removing = true;
-            this.clear_removal_flags_for_children();
-            this.unbuild_children();
-            return this.zoom_to(false);
-          } else {
-            if (this.parent) {
-              _ref4 = this.parent.flower_children();
-              for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
-                sibling = _ref4[_i];
-                if (sibling.has_children_shown()) {
-                  sibling.stop_removing = true;
-                  sibling.clear_removal_flags_for_children();
-                  sibling.unbuild_children();
-                }
-                sibling.p_node.attr({
-                  fill: '#fff',
-                  'stroke-width': 1
-                });
-              }
-              this.parent.rotate_children_to(this);
-            }
-            this.build_children();
-            return this.zoom_to(true);
-          }
-        }, this));
+        this.p_hoverset.push(this.p_text);
+        (_ref5 = this.p_hoverset).hover.apply(_ref5, this.on_hovers());
+        return this.p_hoverset.click(this.on_click);
       }, this));
-      if (!this.parent) {
-        return this.p_stem.animate({
-          path: "M" + this.center_xy[0] + "," + this.canvas_height + "L" + this.center_xy[0] + "," + this.center_xy[1]
-        }, this.in_speed, ">");
-      } else {
+      toline_text = "L" + this.center_xy[0] + "," + this.center_xy[1];
+      if (this.parent) {
         this.parent.p_node.toFront();
         this.parent.p_text.toFront();
         return this.p_stem.animate({
-          path: "M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + "L" + this.center_xy[0] + "," + this.center_xy[1]
-        }, this.in_speed, ">");
+          path: "M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + toline_text + "}"
+        }, in_speed, ">");
+      } else {
+        return this.p_stem.animate({
+          path: "M" + this.center_xy[0] + "," + p_height + toline_text
+        }, in_speed, ">");
       }
     };
+    FlowerNode.prototype.on_hovers = function() {
+      var hover_off, hover_on;
+      hover_on = __bind(function() {
+        return this.p_node_glow = this.p_node.glow({
+          color: 'blue',
+          width: 7,
+          opacity: 0.3
+        });
+      }, this);
+      hover_off = __bind(function() {
+        return this.p_node_glow.remove();
+      }, this);
+      return [hover_on, hover_off];
+    };
+    FlowerNode.prototype.on_click = function() {
+      var sibling, _i, _len, _ref;
+      log("" + this.label + " was clicked!");
+      if (this.has_children_shown()) {
+        this.hide_children();
+      } else {
+        if (this.parent) {
+          _ref = this.parent.flower_children;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            sibling = _ref[_i];
+            if (sibling.has_children_shown()) {
+              sibling.hide_children();
+            }
+            sibling.deselect();
+          }
+          this.parent.rotate_children_to(this);
+        }
+        this.select();
+        this.build_children();
+      }
+      return this.zoom_to_node;
+    };
     FlowerNode.prototype.rotate_children = function(rotation_steps, clockwise) {
-      var child, deg_per_slice, double_cc_i, double_cw_i, i, max_child_i, num_children, r_deg, rs, step_amt, total, _len, _ref, _results;
+      var child, deg_per_slice, double_cc_i, double_cw_i, i, max_child_i, num_children, r_deg, rs, step_amt, _results;
       if (clockwise == null) {
         clockwise = false;
       }
-      num_children = this.flower_children().length;
+      num_children = this.flower_children.length;
       max_child_i = num_children - 1;
-      total = num_children + 1;
-      deg_per_slice = 360 / total;
+      deg_per_slice = 360 / (num_children + 1) * (clockwise ? -1 : 1);
       step_amt = clockwise ? -1 : 1;
-      if (clockwise) {
-        deg_per_slice = -1 * deg_per_slice;
-      }
       _results = [];
       for (rs = 1; 1 <= rotation_steps ? rs <= rotation_steps : rs >= rotation_steps; 1 <= rotation_steps ? rs++ : rs--) {
-        if (this.children_rotation_step > 0) {
-          double_cc_i = max_child_i - (this.children_rotation_step % (max_child_i + 1));
+        if (this.cur_rot_step > 0) {
+          double_cc_i = max_child_i - (this.cur_rot_step % (max_child_i + 1));
           double_cw_i = next_i(double_cc_i, max_child_i);
         } else {
-          double_cw_i = Math.abs(this.children_rotation_step) % (max_child_i + 1);
+          double_cw_i = Math.abs(this.cur_rot_step) % (max_child_i + 1);
           double_cc_i = prev_i(double_cw_i, max_child_i);
         }
         log("Double CC index is " + double_cc_i + ", Double CW index is " + double_cw_i);
-        _ref = this.flower_children();
-        for (i = 0, _len = _ref.length; i < _len; i++) {
-          child = _ref[i];
-          if (child.p_node !== null) {
+        this.cur_rot_step += step_amt;
+        _results.push((function() {
+          var _len, _ref, _results2;
+          _ref = this.flower_children;
+          _results2 = [];
+          for (i = 0, _len = _ref.length; i < _len; i++) {
+            child = _ref[i];
             r_deg = deg_per_slice;
             if ((clockwise && i === double_cw_i) || (!clockwise && i === double_cc_i)) {
               r_deg += deg_per_slice;
-              log("" + child.label + " (" + i + ") is one that will jump " + (clockwise ? 'clockwise' : 'counter-clockwise') + " (RS was " + this.children_rotation_step + ")");
+              log("" + child.label + " (" + i + ") is one that will jump " + (clockwise ? 'clockwise' : 'counter-clockwise') + " (RS was " + this.cur_rot_step + ")");
             }
-            child.cur_r_deg += r_deg;
-            __bind(function(child, i, r_deg) {
-              var anim_args, main_rotation_transform, text_rotation_transform, _ref2, _ref3;
-              main_rotation_transform = "r" + (-1 * child.cur_r_deg) + "," + this.center_xy[0] + "," + this.center_xy[1];
-              text_rotation_transform = "" + main_rotation_transform + "R" + child.cur_r_deg;
-              anim_args = [200, ">"];
-              (_ref2 = child.p_rset).animate.apply(_ref2, [{
-                transform: main_rotation_transform
-              }].concat(__slice.call(anim_args)));
-              return (_ref3 = child.p_text).animate.apply(_ref3, [{
-                transform: text_rotation_transform
-              }].concat(__slice.call(anim_args)));
-            }, this)(child, i, r_deg);
-            child.set_new_center(i, this.children_rotation_step + step_amt, num_children);
+            child.rotate_by(r_deg);
+            _results2.push(child.set_new_center(i, this.cur_rot_step, num_children));
           }
-        }
-        _results.push(this.children_rotation_step += step_amt);
+          return _results2;
+        }).call(this));
       }
       return _results;
     };
     FlowerNode.prototype.node_index = function() {
       if (this.parent) {
-        return this.parent.children.indexOf(this);
+        return this.parent.flower_children.indexOf(this);
       } else {
         return 0;
       }
     };
     FlowerNode.prototype.rotate_children_to = function(node) {
-      var center_i, cur_normalized_step, dist, even_children, i, num_children, sign;
-      num_children = this.flower_children().length;
+      var center_i, cur_normalized_step, dist, i, num_children, sign;
+      num_children = this.flower_children.length;
       i = node.node_index();
-      sign = this.children_rotation_step < 0 ? -1 : 1;
-      cur_normalized_step = sign * (Math.abs(this.children_rotation_step) % num_children);
+      sign = this.cur_rot_step < 0 ? -1 : 1;
+      cur_normalized_step = sign * (Math.abs(this.cur_rot_step) % num_children);
       log("Normalized step is " + cur_normalized_step);
-      even_children = num_children % 2 === 0 ? true : false;
       center_i = Math.floor(num_children / 2) - cur_normalized_step;
       if (center_i < 0) {
         center_i = num_children + (center_i % num_children);
@@ -351,7 +339,7 @@
         center_i = center_i % num_children;
       }
       log("Center i is " + center_i);
-      if (!node.is_middle()) {
+      if (i !== center_i) {
         if (node.is_right_of_middle()) {
           dist = dist_between_i(i, center_i, num_children - 1);
           log("Dist is " + dist);
@@ -362,6 +350,19 @@
           return this.rotate_children(dist, true);
         }
       }
+    };
+    FlowerNode.prototype.rotate_by = function(r_deg) {
+      var anim_args, main_rotation_transform, text_rotation_transform, _ref, _ref2;
+      this.cur_rot_deg += r_deg;
+      main_rotation_transform = "r" + (-1 * this.cur_rot_deg) + "," + this.parent.center_xy[0] + "," + this.parent.center_xy[1];
+      text_rotation_transform = "" + main_rotation_transform + "R" + this.cur_rot_deg;
+      anim_args = [200, ">"];
+      (_ref = this.p_rset).animate.apply(_ref, [{
+        transform: main_rotation_transform
+      }].concat(__slice.call(anim_args)));
+      return (_ref2 = this.p_text).animate.apply(_ref2, [{
+        transform: text_rotation_transform
+      }].concat(__slice.call(anim_args)));
     };
     FlowerNode.prototype.is_middle = function() {
       var diff;
@@ -375,33 +376,49 @@
     FlowerNode.prototype.is_left_of_middle = function() {
       return this.center_xy[0] < this.parent.center_xy[0];
     };
-    FlowerNode.prototype.build_children = function() {
-      var child, i, new_distance, _len, _ref;
-      new_distance = this.distance * 0.9;
-      _ref = this.children;
-      for (i = 0, _len = _ref.length; i < _len; i++) {
-        child = _ref[i];
-        if (child.type === 'flower') {
-          child.build(this.get_center_for_child(i, this.center_xy, new_distance), this.opts, this.paper, this.canvas_height, this.canvas_width, this.radius * 0.75, new_distance);
-          child.set_cur_deg();
-          log("build " + child.label);
-        }
-      }
-      return this.p_node.attr({
-        fill: '#e0e0e0',
-        'stroke-width': 2
+    FlowerNode.prototype.select = function() {
+      var o;
+      o = this.flower.opts;
+      this.p_node.attr({
+        fill: o.selected_node_color,
+        'stroke-width': o.selected_stem_width
+      });
+      return this.p_stem.attr({
+        'stroke-width': o.selected_stem_width
       });
     };
-    FlowerNode.prototype.zoom_to = function(zooming_in) {
-      var new_h, new_w, r_cx, r_cy, x_off, y_off;
-      r_cx = this.canvas_width / 2;
-      r_cy = this.canvas_height / 2;
-      x_off = this.center_xy[0] - r_cx;
-      y_off = this.center_xy[1] - r_cy;
+    FlowerNode.prototype.build_children = function() {
+      var child, i, new_distance, new_radius, _len, _ref, _results;
+      new_distance = this.distance * 0.9;
+      new_radius = this.radius * 0.75;
+      _ref = this.flower_children;
+      _results = [];
+      for (i = 0, _len = _ref.length; i < _len; i++) {
+        child = _ref[i];
+        _results.push(child.build(this.get_center_for_child(i, this.center_xy, new_distance), new_radius, new_distance));
+      }
+      return _results;
+    };
+    FlowerNode.prototype.zoom_to_node = function() {
+      var new_w, _ref;
       new_w = this.radius / this.radius_pct;
-      new_h = new_w * this.canvas_height / this.canvas_width;
-      x_off += (this.canvas_width - new_w) / 2;
-      return y_off += (this.canvas_height - new_h) / 2;
+      return (_ref = this.flower).zoom_to.apply(_ref, __slice.call(this.center_xy).concat([new_w]));
+    };
+    FlowerNode.prototype.deselect = function() {
+      var o;
+      o = this.flower.opts;
+      this.p_node.attr({
+        fill: o.node_color,
+        'stroke-width': o.stem_width
+      });
+      return this.p_stem.attr({
+        'stroke-width': o.stem_width
+      });
+    };
+    FlowerNode.prototype.hide_children = function() {
+      this.stop_removing = true;
+      this.clear_removal_flags_for_children();
+      return this.unbuild_children();
     };
     FlowerNode.prototype.unbuild_children = function(upwards) {
       var child, _i, _len, _ref, _results;
@@ -410,16 +427,16 @@
       }
       log("Unbuilding children for: " + this.label);
       if (this.has_children_shown() && !upwards) {
-        _ref = this.children;
+        _ref = this.flower_children;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           child = _ref[_i];
-          _results.push(child.type === 'flower' ? child.unbuild_children() : void 0);
+          _results.push(child.unbuild_children());
         }
         return _results;
       } else if (!this.stop_removing && !this.has_children_shown() && !this.removal_animation_in_progress) {
         log("Removing " + this.label + " with animation");
-        return this.remove_p(__bind(function() {
+        return this.remove_paper_elements(__bind(function() {
           return this.parent.unbuild_children(true);
         }, this));
       } else if (upwards) {
@@ -432,27 +449,25 @@
         }
       }
     };
-    FlowerNode.prototype.remove_p = function(callback) {
+    FlowerNode.prototype.remove_paper_elements = function(callback) {
+      var out_speed;
       this.removal_animation_in_progress = true;
       this.p_text.remove();
       this.p_text = null;
-      this.parent.p_node.toFront();
-      this.parent.p_node.attr({
-        fill: '#fff'
-      });
-      this.parent.p_text.toFront();
+      out_speed = this.flower.opts.node_out_speed;
       this.p_stem.animate({
         path: "M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + "L" + this.start_center_xy[0] + "," + this.start_center_xy[1]
-      }, this.out_speed, ">");
+      }, out_speed, ">", __bind(function() {
+        this.p_stem.remove();
+        return this.p_stem = null;
+      }, this));
       return this.p_node.animate({
         cx: this.start_center_xy[0],
         cy: this.start_center_xy[1],
         r: this.start_radius
-      }, this.out_speed, ">", __bind(function() {
+      }, out_speed, ">", __bind(function() {
         this.p_node.remove();
-        this.p_stem.remove();
         this.p_node = null;
-        this.p_stem = null;
         this.center_xy = null;
         setTimeout(callback, 5);
         return this.removal_animation_in_progress = false;
@@ -461,7 +476,7 @@
     FlowerNode.prototype.clear_removal_flags_for_children = function() {
       var child, _i, _len, _ref, _results;
       log("Clearing removal flag for " + this.label);
-      _ref = this.flower_children();
+      _ref = this.flower_children;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         child = _ref[_i];
@@ -471,25 +486,15 @@
       return _results;
     };
     FlowerNode.prototype.get_center_for_child = function(i, offset_xy, distance) {
-      var rad_per_slice, this_rad, total, x, y;
-      total = this.flower_children().length + 1;
-      rad_per_slice = deg2rad(360 / total);
+      var deg_per_slice, rad_per_slice, this_rad, x, y;
+      deg_per_slice = 360 / (this.flower_children.length + 1);
+      rad_per_slice = deg2rad(deg_per_slice);
       this_rad = (i + 1) * rad_per_slice;
       x = distance * Math.sin(this_rad);
       y = distance * Math.cos(this_rad);
       x += offset_xy[0];
       y += offset_xy[1];
       return [x, y];
-    };
-    FlowerNode.prototype.get_cur_rad = function() {
-      var cur_rad, offset_x, offset_y;
-      offset_x = this.center_xy[0] - this.parent.center_xy[0];
-      offset_y = this.center_xy[1] - this.parent.center_xy[1];
-      cur_rad = Math.asin(offset_x / this.distance);
-      return cur_rad;
-    };
-    FlowerNode.prototype.set_cur_deg = function() {
-      return this.deg = rad2deg(this.get_cur_rad());
     };
     FlowerNode.prototype.set_new_center = function(i, rot_step, num_children) {
       var new_i;

@@ -1,17 +1,22 @@
-# on document load
+# On document load
 $ ->
-    # construct a new flower object with the appropriate root
+    # Set up the options which determine Flower behavior
     opts =
-        node_color: '#fff',
-        stroke_color: '#777',
-        node_radius: 0.055, # node radius is a percentage of screen width
+        node_color: '#fff'
+        selected_node_color: '#e0e0e0'
+        stroke_color: '#777'
+        stem_width: 1
+        selected_stem_width: 2
+        node_radius: 0.055 # node radius is a percentage of screen width
         node_distance: 180
+        node_in_speed: 150
+        node_out_speed: 100
 
-    # set body height explicitly so it can be a valid flower container
+    # Set body height explicitly so it can be a valid flower container
     $('body').css({'height': $(window).outerHeight() + 'px'})
 
-    # initialize flower nav
-    f = new Flower($('#flowerRoot'), $('body'), opts)
+    # Initialize flower nav
+    f = new Flower $('#flowerRoot'), $('body'), opts
 
-    # render flower to canvas
+    # Render flower to canvas
     f.build()
