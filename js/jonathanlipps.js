@@ -175,6 +175,7 @@
       this.label = $('.nodeLabel', this.el).html();
       this.cur_rot_step = 0;
       this.cur_rot_deg = 0;
+      this.extra_rotation_degrees = 0;
       this.url = null;
       if (el.attr('data-url')) {
         this.url = el.attr('data-url');
@@ -189,6 +190,7 @@
       if ((_ref2 = this.center_xy) == null) {
         this.center_xy = this.flower.p_center;
       }
+      this.orig_center_xy = this.center_xy;
       this.radius_pct = opts.node_radius;
       if ((_ref3 = this.radius) == null) {
         this.radius = p_width * this.radius_pct;
@@ -273,7 +275,9 @@
           this.hide_children();
         } else {
           if (this.parent) {
-            this.parent.rotate_children_to(this, __bind(function() {}, this));
+            this.parent.rotate_children_to(this, __bind(function() {
+              return this.grow_and_build();
+            }, this));
             _ref = this.parent.flower_children;
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               sibling = _ref[_i];
@@ -303,6 +307,9 @@
       max_child_i = num_children - 1;
       deg_per_slice = 360 / (num_children + 1) * (clockwise ? -1 : 1);
       step_amt = clockwise ? -1 : 1;
+      if (extra_half) {
+        this.extra_rotation_degrees = deg_per_slice / 2;
+      }
       rs = 0;
       while (rs < rotation_steps) {
         if (this.cur_rot_step > 0) {
@@ -321,19 +328,20 @@
             r_deg += deg_per_slice;
           }
           child.rotate_by(r_deg);
-          child.set_new_center(i, this.cur_rot_step, num_children);
         }
         rs += 1;
       }
-      if (extra_half) {
-        _ref2 = this.flower_children;
-        _results = [];
-        for (i = 0, _len2 = _ref2.length; i < _len2; i++) {
-          child = _ref2[i];
-          _results.push(child.rotate_by(deg_per_slice / 2));
+      _ref2 = this.flower_children;
+      _results = [];
+      for (i = 0, _len2 = _ref2.length; i < _len2; i++) {
+        child = _ref2[i];
+        if (extra_half) {
+          log("Extra degrees: " + this.extra_rotation_degrees);
+          child.rotate_by(this.extra_rotation_degrees);
         }
-        return _results;
+        _results.push(child.set_new_center(i, this.cur_rot_step, num_children));
       }
+      return _results;
     };
     FlowerNode.prototype.node_index = function() {
       if (this.parent) {
@@ -343,7 +351,7 @@
       }
     };
     FlowerNode.prototype.rotate_children_to = function(node, callback) {
-      var center_i, cur_normalized_step, even_children, even_nodes_spread, extra_half_rotation, i, is_left, is_right, num_children, sign, _ref;
+      var center_i, cur_normalized_step, even_children, even_nodes_spread, extra_half, extra_half_rotation, i, is_left, is_right, num_children, sign, _ref;
       num_children = this.flower_children.length;
       i = node.node_index();
       _ref = [node.is_right_of_middle(), node.is_left_of_middle()], is_right = _ref[0], is_left = _ref[1];
@@ -355,8 +363,7 @@
       center_i = this.index_of_middle_node();
       if (center_i === null && even_children) {
         even_nodes_spread = true;
-        log('need extra half rotation');
-        extra_half_rotation = true;
+        extra_half = true;
       }
       if (center_i == null) {
         center_i = Math.floor(num_children / 2) - cur_normalized_step;
@@ -365,11 +372,11 @@
         center_i = prev_i(center_i, num_children - 1);
       }
       log("Center i is " + center_i);
-      if (i !== center_i || extra_half_rotation) {
+      if (i !== center_i || extra_half) {
         if (is_right) {
-          this.rotate_children(dist_between_i(i, center_i, num_children - 1), false, extra_half_rotation);
+          this.rotate_children(dist_between_i(i, center_i, num_children - 1), false, extra_half);
         } else if (is_left) {
-          this.rotate_children(dist_between_i(i, center_i, num_children - 1, false), true, extra_half_rotation);
+          this.rotate_children(dist_between_i(i, center_i, num_children - 1, false), true, extra_half);
         }
         return setTimeout(callback, this.flower.opts.rotation_speed + 5);
       } else {
@@ -377,7 +384,7 @@
       }
     };
     FlowerNode.prototype.rotate_by = function(r_deg) {
-      var anim_args, main_rotation_transform, text_rotation_transform, _ref, _ref2;
+      var anim_args, cx, cy, main_rotation_transform, px, py, text_rotation_transform, _ref, _ref2, _ref3, _ref4;
       this.cur_rot_deg += r_deg;
       main_rotation_transform = "r" + (-1 * this.cur_rot_deg) + "," + this.parent.center_xy[0] + "," + this.parent.center_xy[1];
       text_rotation_transform = "" + main_rotation_transform + "R" + this.cur_rot_deg;
@@ -385,36 +392,30 @@
       (_ref = this.p_rset).animate.apply(_ref, [{
         transform: main_rotation_transform
       }].concat(__slice.call(anim_args)));
-      return (_ref2 = this.p_text).animate.apply(_ref2, [{
+      (_ref2 = this.p_text).animate.apply(_ref2, [{
         transform: text_rotation_transform
+      }].concat(__slice.call(anim_args)));
+      _ref3 = __slice.call(this.parent.center_xy).concat(__slice.call(this.orig_center_xy)), px = _ref3[0], py = _ref3[1], cx = _ref3[2], cy = _ref3[3];
+      return (_ref4 = this.p_stem).animate.apply(_ref4, [{
+        path: "M" + px + "," + py + "L" + cx + "," + cy
       }].concat(__slice.call(anim_args)));
     };
     FlowerNode.prototype.grow_and_build = function() {
-      var end_xy, even_children, grow_anim_speed, is_left, is_right, opts, post_animation, x_off, _ref;
+      var even_children, grow_anim_speed, new_distance_ratio, new_x, new_y, opts, post_animation;
       even_children = this.parent.flower_children.length % 2 === 0;
       opts = this.flower.opts;
       grow_anim_speed = opts.rotation_speed;
-      end_xy = [this.parent.center_xy[0], this.parent.center_xy[1] - (this.distance * 2)];
-      if (even_children) {
-        _ref = [this.is_right_of_middle(), this.is_left_of_middle()], is_right = _ref[0], is_left = _ref[1];
-        x_off = this.center_xy[0] - this.parent.center_xy[0];
-        if (is_left) {
-          this.p_hoverset.animate({
-            transform: "...T" + x_off + ",-" + (this.distance * 1.5)
-          }, grow_anim_speed, ">");
-        } else {
-          this.p_hoverset.animate({
-            transform: "...T" + (-1 * x_off) + ",-" + (this.distance * 1.5)
-          }, grow_anim_speed, ">");
-          this.p_stem.attr({
-            path: "" + (this.p_stem.attr('path')) + "T" + this.parent.center_xy[0] + "," + (this.center_xy[1] - this.distance * 1.5)
-          });
-        }
-      } else {
-        this.p_hoverset.animate({
-          transform: "...T0,-" + this.distance
-        }, grow_anim_speed, ">");
-      }
+      new_distance_ratio = 1.6;
+      new_x = this.parent.center_xy[0] + ((this.orig_center_xy[0] - this.parent.center_xy[0]) * new_distance_ratio);
+      new_y = this.parent.center_xy[1] + ((this.orig_center_xy[1] - this.parent.center_xy[1]) * new_distance_ratio);
+      this.center_xy[1] -= this.distance * new_distance_ratio / 2;
+      log("After growing, center_xy is " + this.center_xy);
+      this.p_hoverset.animate({
+        transform: "...T0,-" + (this.distance * new_distance_ratio / 2)
+      }, grow_anim_speed, ">");
+      this.p_stem.animate({
+        path: "M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + "L" + new_x + "," + new_y
+      }, grow_anim_speed, ">");
       post_animation = __bind(function() {
         return this.build_children();
       }, this);
@@ -458,8 +459,9 @@
     };
     FlowerNode.prototype.build_children = function() {
       var child, i, new_distance, new_radius, _len, _ref, _results;
-      new_distance = this.distance * 0.9;
-      new_radius = this.radius * 0.75;
+      new_distance = this.distance * 0.75;
+      new_radius = this.radius * 0.7;
+      log("Building children. Current parent xy is " + this.center_xy);
       _ref = this.flower_children;
       _results = [];
       for (i = 0, _len = _ref.length; i < _len; i++) {
@@ -487,7 +489,8 @@
     FlowerNode.prototype.hide_children = function() {
       this.stop_removing = true;
       this.clear_removal_flags_for_children();
-      return this.unbuild_children();
+      this.unbuild_children();
+      return this.extra_rotation_degrees = 0;
     };
     FlowerNode.prototype.unbuild_children = function(upwards) {
       var child, _i, _len, _ref, _results;
@@ -554,11 +557,12 @@
       }
       return _results;
     };
-    FlowerNode.prototype.get_center_for_child = function(i, offset_xy, distance) {
-      var deg_per_slice, rad_per_slice, this_rad, x, y;
+    FlowerNode.prototype.get_center_for_child = function(i, offset_xy, distance, extra_deg) {
+      var deg_per_slice, extra_rad, rad_per_slice, this_rad, x, y;
       deg_per_slice = 360 / (this.flower_children.length + 1);
       rad_per_slice = deg2rad(deg_per_slice);
-      this_rad = (i + 1) * rad_per_slice;
+      extra_rad = deg2rad(this.extra_rotation_degrees);
+      this_rad = (i + 1) * rad_per_slice + extra_rad;
       x = distance * Math.sin(this_rad);
       y = distance * Math.cos(this_rad);
       x += offset_xy[0];
@@ -572,8 +576,7 @@
         new_i = num_children + new_i;
       }
       this.center_xy = this.parent.get_center_for_child(new_i, this.parent.center_xy, this.distance);
-      log("New center for " + this.label + " is " + this.center_xy);
-      return log("Raph center for " + this.label + " is " + [this.p_node.attr('cx'), this.p_node.attr('cy')]);
+      return log("Center for " + this.label + " is " + this.center_xy);
     };
     return FlowerNode;
   })();

@@ -14,6 +14,7 @@ class FlowerNode extends Node
         # We need to keep track of the current rotation degree of this node so
         # we can accumulate rotation degrees for subsequent Raphael transforms
         @cur_rot_deg = 0
+        @extra_rotation_degrees = 0
 
         # Some FlowerNodes have urls, which means they are basically links
         @url = null
@@ -24,6 +25,9 @@ class FlowerNode extends Node
         # Set some convenience variables based on Flower options etc...
         [opts, p, p_height, p_width] = [@flower.opts, @flower.paper, @flower.p_height, @flower.p_width]
         @center_xy ?= @flower.p_center
+        # Center XY gets changed, so we need to keep a copy free from
+        # transformations
+        @orig_center_xy = @center_xy
         @radius_pct = opts.node_radius
         @radius ?= p_width * @radius_pct
         @distance ?= opts.node_distance
@@ -118,7 +122,7 @@ class FlowerNode extends Node
                     @parent.rotate_children_to this, =>
                         # After rotation animation, grow the selected child's
                         # stem and build children from there
-                        #@grow_and_build()
+                        @grow_and_build()
 
                     # If this node has a sibling with children shown, we
                     # need to close and deselect them
@@ -144,6 +148,9 @@ class FlowerNode extends Node
         max_child_i = num_children - 1 # index of last child in node set
         deg_per_slice = 360 / (num_children + 1) * (if clockwise then -1 else 1)
         step_amt = if clockwise then -1 else 1
+
+        if extra_half
+            @extra_rotation_degrees = deg_per_slice / 2
 
         # Loop through the rotation code once per step requested; the animations
         # will appear to be chained
@@ -176,18 +183,17 @@ class FlowerNode extends Node
 
                 # Perform the actual rotation
                 child.rotate_by r_deg
-                # Notify the child that it needs to update its @center_xy based
-                # on where it has ended up (i.e., the rotation step)
-                child.set_new_center i, @cur_rot_step, num_children
 
             rs += 1
 
-        if extra_half
-            for child, i in @flower_children
-                # If we need to rotate an extra half step, add those degrees now
-                child.rotate_by deg_per_slice / 2
-
-
+        for child, i in @flower_children
+            # If we need to rotate an extra half step, add those degrees now
+            if extra_half
+                log "Extra degrees: #{@extra_rotation_degrees}"
+                child.rotate_by @extra_rotation_degrees
+            # Notify the child that it needs to update its @center_xy based
+            # on where it has ended up (i.e., the rotation step)
+            child.set_new_center i, @cur_rot_step, num_children
 
     node_index: ->
         # Get the index of this node in its parent's list of children
@@ -217,8 +223,7 @@ class FlowerNode extends Node
         # half rotation to get the node into a vertical position
         if center_i is null and even_children
             even_nodes_spread = true
-            log 'need extra half rotation'
-            extra_half_rotation = true
+            extra_half = true
 
         # If no middle node is selected, we know it's the middle index,
         # normalized by the rotation step (which should be zero)
@@ -236,15 +241,15 @@ class FlowerNode extends Node
 
         # If the node we want to rotate to is already in center position, we
         # don't need to do anything. Otherwise:
-        if i isnt center_i or extra_half_rotation
+        if i isnt center_i or extra_half
             # We need to find the 'distance' between this node and the center
             # node based on their indices, and based on which side of center
             # the node is on. With this information we can actually perform the
             # rotation with the appropriate number of steps.
             if is_right
-                @rotate_children dist_between_i(i, center_i, num_children - 1), false, extra_half_rotation
+                @rotate_children dist_between_i(i, center_i, num_children - 1), false, extra_half
             else if is_left
-                @rotate_children dist_between_i(i, center_i, num_children - 1, false), true, extra_half_rotation
+                @rotate_children dist_between_i(i, center_i, num_children - 1, false), true, extra_half
 
             # It's hard to put a callback on @rotate_children since the callback
             # would be called multiple times. Instead we simulate a post-
@@ -269,29 +274,25 @@ class FlowerNode extends Node
         # We perform both animations simultaneously
         @p_rset.animate {transform: main_rotation_transform}, anim_args...
         @p_text.animate {transform: text_rotation_transform}, anim_args...
+        # Also shrink the stem in case it was extended
+        [px, py, cx, cy] = [@parent.center_xy..., @orig_center_xy...]
+        @p_stem.animate {path: "M#{px},#{py}L#{cx},#{cy}"}, anim_args...
 
     grow_and_build: ->
-        # First we need to determine the kind of growth that needs to happen.
-        # The options are either (a) straight up (in case of odd nodes, since
-        # we know that this node is now in the middle) or (b) up and around
-        # towards the middle (in the case of even nodes)
         even_children = @parent.flower_children.length % 2 is 0
         opts = @flower.opts
         grow_anim_speed = opts.rotation_speed
+        new_distance_ratio = 1.6
+        new_x = @parent.center_xy[0] + ((@orig_center_xy[0] - @parent.center_xy[0]) * new_distance_ratio)
+        new_y = @parent.center_xy[1] + ((@orig_center_xy[1] - @parent.center_xy[1]) * new_distance_ratio)
+        @center_xy[1] -= @distance * new_distance_ratio / 2
+        log "After growing, center_xy is #{@center_xy}"
 
-        end_xy = [@parent.center_xy[0], @parent.center_xy[1] - (@distance * 2)]
+        #end_xy = [@parent.center_xy[0], @parent.center_xy[1] - (@distance * 2)]
 
-        if even_children
-            [is_right, is_left] = [@is_right_of_middle(), @is_left_of_middle()]
-            x_off = @center_xy[0] - @parent.center_xy[0]
-            if is_left
-                @p_hoverset.animate {transform: "...T#{x_off},-#{@distance*1.5}"}, grow_anim_speed, ">"
-            else
-                @p_hoverset.animate {transform: "...T#{-1*x_off},-#{@distance*1.5}"}, grow_anim_speed, ">"
-                @p_stem.attr
-                    path: "#{@p_stem.attr 'path'}T#{@parent.center_xy[0]},#{@center_xy[1] - @distance*1.5}"
-        else
-            @p_hoverset.animate {transform: "...T0,-#{@distance}"}, grow_anim_speed, ">"
+        @p_hoverset.animate {transform: "...T0,-#{@distance*new_distance_ratio/2}"}, grow_anim_speed, ">"
+
+        @p_stem.animate {path: "M#{@parent.center_xy[0]},#{@parent.center_xy[1]}L#{new_x},#{new_y}"}, grow_anim_speed, ">"
 
 
         post_animation = =>
@@ -332,8 +333,9 @@ class FlowerNode extends Node
 
     build_children: ->
         # Draw children
-        new_distance = @distance * 0.9
-        new_radius = @radius * 0.75
+        new_distance = @distance * 0.75
+        new_radius = @radius * 0.7
+        log "Building children. Current parent xy is #{@center_xy}"
         for child, i in @flower_children
             child.build @get_center_for_child(i, @center_xy, new_distance), new_radius, new_distance
 
@@ -364,6 +366,10 @@ class FlowerNode extends Node
 
         # Deconstruct child nodes with animations
         @unbuild_children()
+
+        # Need to clear out half rotation flag so when the children get
+        # reshown they will appear in standard position
+        @extra_rotation_degrees = 0
 
     unbuild_children: (upwards = false) ->
 
@@ -421,11 +427,15 @@ class FlowerNode extends Node
             child.clear_removal_flags_for_children()
             child.stop_removing = false
 
-    get_center_for_child: (i, offset_xy, distance) ->
+    get_center_for_child: (i, offset_xy, distance, extra_deg) ->
         # total number of slices is children + 1 since we account for this node's stem
         deg_per_slice = 360 / (@flower_children.length + 1)
         rad_per_slice = deg2rad(deg_per_slice)
-        this_rad = (i+1) * rad_per_slice
+        #log "ERD is #{@extra_rotation_degrees}"
+        extra_rad = deg2rad(@extra_rotation_degrees)
+        #log "Extra rad is #{extra_rad}"
+        this_rad = (i+1) * rad_per_slice + extra_rad
+        #log "Degree for #{i} is #{rad2deg(this_rad)}"
         x = (distance * Math.sin(this_rad))
         y = (distance * Math.cos(this_rad))
         #log [x,y]
@@ -440,7 +450,6 @@ class FlowerNode extends Node
             new_i = num_children + new_i
         #log "New i for node #{@label} is #{new_i}"
         @center_xy = @parent.get_center_for_child new_i, @parent.center_xy, @distance
-        log "New center for #{@label} is #{@center_xy}"
-        log "Raph center for #{@label} is #{[@p_node.attr('cx'), @p_node.attr('cy')]}"
+        log "Center for #{@label} is #{@center_xy}"
         #@set_cur_deg()
 
