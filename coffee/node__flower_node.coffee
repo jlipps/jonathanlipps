@@ -112,31 +112,34 @@ class FlowerNode extends Node
                 @hide_children()
             else
                 # If no children are shown, a click means 'show them'!
-                # First, select the node
-                @select()
                 if @parent
-                    # If this node has a sibling with children shown, we
-                    # need to close them before opening this node's children
-                    for sibling in @parent.flower_children
-                        if sibling.has_children_shown()
-                            sibling.hide_children()
-                        sibling.deselect()
-
                     # Before opening this node's children, we need to rotate
                     # the flower so that this node is on top
                     @parent.rotate_children_to this, =>
                         # After rotation animation, grow the selected child's
                         # stem and build children from there
-                        @grow_and_build()
+                        #@grow_and_build()
+
+                    # If this node has a sibling with children shown, we
+                    # need to close and deselect them
+                    for sibling in @parent.flower_children
+                        if sibling.has_children_shown()
+                            sibling.hide_children()
+                        sibling.deselect()
                 else
                     # If there's no parent, we don't need to expand, just build
                     # children
                     @build_children()
 
+
+                # Finally, select the node to change color, set selection status
+                @select()
+
             # Zoom into the node we just selected
             @zoom_to_node()
 
-    rotate_children: (rotation_steps, clockwise = false) ->
+    rotate_children: (rotation_steps, clockwise = false, extra_half = false) ->
+        log "Rotating children #{rotation_steps} step#{if extra_half then ' with an extra half turn' else ''}"
         num_children = @flower_children.length
         max_child_i = num_children - 1 # index of last child in node set
         deg_per_slice = 360 / (num_children + 1) * (if clockwise then -1 else 1)
@@ -144,7 +147,8 @@ class FlowerNode extends Node
 
         # Loop through the rotation code once per step requested; the animations
         # will appear to be chained
-        for rs in [1..rotation_steps]
+        rs = 0
+        while rs < rotation_steps
             # At every rotation step, there is one node which needs to move
             # twice as far to account for the gap for the parent stem. This
             # will also change depending on the direction of rotation
@@ -155,7 +159,7 @@ class FlowerNode extends Node
                 double_cw_i = Math.abs(@cur_rot_step) % (max_child_i + 1)
                 double_cc_i = prev_i double_cw_i, max_child_i
 
-            log "Double CC index is #{double_cc_i}, Double CW index is #{double_cw_i}"
+            #log "Double CC index is #{double_cc_i}, Double CW index is #{double_cw_i}"
 
             # Increment the rotation step to what it will be after this rotation
             @cur_rot_step += step_amt
@@ -168,12 +172,20 @@ class FlowerNode extends Node
                 # twice, add an extra slice of degrees
                 if (clockwise and i is double_cw_i) or (not clockwise and i is double_cc_i)
                     r_deg += deg_per_slice
-                    log "#{child.label} (#{i}) is one that will jump #{if clockwise then 'clockwise' else 'counter-clockwise'} (RS was #{@cur_rot_step})"
+                    #log "#{child.label} (#{i}) is one that will jump #{if clockwise then 'clockwise' else 'counter-clockwise'} (RS was #{@cur_rot_step})"
+
                 # Perform the actual rotation
                 child.rotate_by r_deg
                 # Notify the child that it needs to update its @center_xy based
                 # on where it has ended up (i.e., the rotation step)
                 child.set_new_center i, @cur_rot_step, num_children
+
+            rs += 1
+
+        if extra_half
+            for child, i in @flower_children
+                # If we need to rotate an extra half step, add those degrees now
+                child.rotate_by deg_per_slice / 2
 
 
 
@@ -186,44 +198,53 @@ class FlowerNode extends Node
         i = node.node_index()
         [is_right, is_left] = [node.is_right_of_middle(), node.is_left_of_middle()]
         even_children = num_children % 2 is 0
+        even_nodes_spread = false
+        extra_half_rotation = false
 
         # Since the current rotation step might be -22 even when there's only
         # say 4 or 5 nodes, we want to normalize it to get the smallest equvalent
         sign = if @cur_rot_step < 0 then -1 else 1
         cur_normalized_step = sign * (Math.abs(@cur_rot_step) % num_children)
-        log "Normalized step is #{cur_normalized_step}"
+        #log "Normalized step is #{cur_normalized_step}"
 
         # Now we need to find the node which is currently in 'center' position,
         # i.e., the node in the position we want _this_ node to eventually
-        # be in. The index for this node also needs to be normalized so we
-        # get a valid node index.
-        center_i = Math.floor(num_children / 2) - cur_normalized_step
-        if center_i < 0
-            center_i = num_children + (center_i % num_children)
-        if center_i >= num_children
-            center_i = center_i % num_children
+        # be in.
+        center_i = @index_of_middle_node()
 
-        # When we have even children, the center_i will always be the node on
+        # If this is the first time we're trying to get the middle node's index,
+        # and we have even children, we need to indicate that we want an extra
+        # half rotation to get the node into a vertical position
+        if center_i is null and even_children
+            even_nodes_spread = true
+            log 'need extra half rotation'
+            extra_half_rotation = true
+
+        # If no middle node is selected, we know it's the middle index,
+        # normalized by the rotation step (which should be zero)
+        center_i ?= Math.floor(num_children / 2) - cur_normalized_step
+
+        # When we begin with even children, the center_i will be the node on
         # the top left. So if we have a node on the right side, we want to
         # move it to top right position, not top left position (since top right)
         # is closer. In this case we want to move an index down in the children
         # index chain
-        if even_children and is_right
+        if even_nodes_spread and is_right
             center_i = prev_i center_i, num_children - 1
 
         log "Center i is #{center_i}"
 
         # If the node we want to rotate to is already in center position, we
         # don't need to do anything. Otherwise:
-        if i isnt center_i
+        if i isnt center_i or extra_half_rotation
             # We need to find the 'distance' between this node and the center
             # node based on their indices, and based on which side of center
             # the node is on. With this information we can actually perform the
             # rotation with the appropriate number of steps.
             if is_right
-                @rotate_children dist_between_i(i, center_i, num_children - 1)
+                @rotate_children dist_between_i(i, center_i, num_children - 1), false, extra_half_rotation
             else if is_left
-                @rotate_children dist_between_i(i, center_i, num_children - 1, false), true
+                @rotate_children dist_between_i(i, center_i, num_children - 1, false), true, extra_half_rotation
 
             # It's hard to put a callback on @rotate_children since the callback
             # would be called multiple times. Instead we simulate a post-
@@ -292,6 +313,12 @@ class FlowerNode extends Node
     is_left_of_middle: ->
         @center_xy[0] < @parent.center_xy[0]
 
+    index_of_middle_node: ->
+        for child, i in @flower_children
+            if child.selected
+                return i
+        return null
+
     select: ->
         # When this node is selected, make some nice visual changes to it
         o = @flower.opts
@@ -300,6 +327,8 @@ class FlowerNode extends Node
             'stroke-width': o.selected_stem_width
         @p_stem.attr
             'stroke-width': o.selected_stem_width
+        log "Setting selected of #{@label} to true"
+        @selected = true
 
     build_children: ->
         # Draw children
@@ -320,6 +349,7 @@ class FlowerNode extends Node
             'stroke-width': o.stem_width
         @p_stem.attr
             'stroke-width': o.stem_width
+        @selected = false
 
     hide_children: ->
         # If children are shown, then a click means we need to recursively close
@@ -410,6 +440,7 @@ class FlowerNode extends Node
             new_i = num_children + new_i
         #log "New i for node #{@label} is #{new_i}"
         @center_xy = @parent.get_center_for_child new_i, @parent.center_xy, @distance
-        #log "New center for #{@label} is #{@center_xy}"
+        log "New center for #{@label} is #{@center_xy}"
+        log "Raph center for #{@label} is #{[@p_node.attr('cx'), @p_node.attr('cy')]}"
         #@set_cur_deg()
 
