@@ -1,13 +1,13 @@
 (function() {
   var ContentNode, Flower, FlowerNode, Node, deg2rad, dist_between_i, log, next_i, prev_i, rad2deg;
-  var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
     ctor.prototype = parent.prototype;
     child.prototype = new ctor;
     child.__super__ = parent.prototype;
     return child;
-  }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __slice = Array.prototype.slice;
+  }, __slice = Array.prototype.slice;
   Flower = (function() {
     function Flower(root_el, container_el, opts) {
       this.root_el = root_el;
@@ -32,17 +32,42 @@
       return this.main_node.build();
     };
     Flower.prototype.zoom_to = function(x, y, new_w) {
-      var new_h, r_cx, r_cy, viewbox_x_off, viewbox_y_off, x_off, y_off, _ref;
+      var i, interval, ms, new_h, r_cx, r_cy, steps, viewbox_x_off, viewbox_y_off, x_off, y_off, zoom_func, _ref;
       log('zooming');
       _ref = this.v_center, r_cx = _ref[0], r_cy = _ref[1];
       x_off = x - r_cx;
       y_off = y - r_cy;
+      log([new_w, this.v_width]);
       new_h = new_w * this.v_height / this.v_width;
       viewbox_x_off = x_off + (this.v_width - new_w) / 2;
       viewbox_y_off = y_off + (this.v_height - new_h) / 2;
-      log([x_off, y_off, new_w, new_h]);
+      log([viewbox_x_off, viewbox_y_off, new_w, new_h]);
       this.paper.setViewBox(0, 0, this.v_width, this.v_height, false);
-      return this.paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false);
+      steps = 200;
+      ms = 150;
+      interval = ms / steps;
+      i = 1;
+      zoom_func = __bind(function() {
+        var step_h, step_h_diff, step_w, step_w_diff, step_x, step_y;
+        if (i < steps) {
+          step_x = i * (viewbox_x_off / steps);
+          step_y = i * (viewbox_y_off / steps);
+          step_w_diff = (this.v_width - new_w) / steps * i;
+          step_h_diff = (this.v_height - new_h) / steps * i;
+          if (new_w < this.v_width) {
+            step_w = this.v_width - step_w_diff;
+            step_h = this.v_height - step_w_diff;
+          } else {
+            step_w = this.v_width + step_w_diff;
+            step_h = this.v_height + step_h_diff;
+          }
+          this.paper.setViewBox(step_x, step_y, step_w, step_h, false);
+          return i++;
+        } else {
+          return clearInterval();
+        }
+      }, this);
+      return setInterval(zoom_func, interval);
     };
     return Flower;
   })();

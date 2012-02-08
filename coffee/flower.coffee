@@ -32,18 +32,43 @@ class Flower
         [r_cx, r_cy] = @v_center
         x_off = x - r_cx
         y_off = y - r_cy
+        log [new_w, @v_width]
         new_h = new_w * @v_height / @v_width
         viewbox_x_off = x_off + (@v_width - new_w) / 2
         viewbox_y_off = y_off + (@v_height - new_h) / 2
-        log [x_off, y_off, new_w, new_h]
+        log [viewbox_x_off, viewbox_y_off, new_w, new_h]
 
         @paper.setViewBox(0, 0, @v_width, @v_height, false)
-        @paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false)
+        #@paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false)
         #[@v_width, @v_height, @v_center] = [new_w, new_h, [x, y]]
 
 
-        # steps = 100
-        # ms = 400
+        steps = 200
+        ms = 150
+        interval = ms / steps
+        i = 1
+
+        zoom_func = =>
+            if i < steps
+                step_x = i * (viewbox_x_off / steps)
+                step_y = i * (viewbox_y_off / steps)
+                step_w_diff = (@v_width - new_w) / steps * i
+                step_h_diff = (@v_height - new_h) / steps * i
+                if new_w < @v_width
+                    step_w = @v_width - step_w_diff
+                    step_h = @v_height - step_w_diff
+                else
+                    step_w = @v_width + step_w_diff
+                    step_h = @v_height + step_h_diff
+                # step_w = if viewbox_x_off isnt 0 then new_w * (step_w_diff / viewbox_x_off) else 0
+                # step_h = if viewbox_y_off isnt 0 then new_h * (step_h_diff / viewbox_y_off) else 0
+                #log [step_x, step_y, step_w_diff, step_h_diff]
+                @paper.setViewBox(step_x, step_y, step_w, step_h, false)
+                i++
+            else
+                clearInterval()
+
+        setInterval zoom_func, interval
         # for i in [1..steps]
         #     setTimeout( =>
         #         step_x = i * (x_off / steps)
