@@ -7,7 +7,7 @@ $ ->
         stroke_color: '#777'
         stem_width: 1
         selected_stem_width: 2
-        node_radius: 0.055 # node radius is a percentage of screen width
+        node_radius: 0.058 # node radius is a percentage of screen width
         node_distance: 180
         node_in_speed: 150
         node_out_speed: 100

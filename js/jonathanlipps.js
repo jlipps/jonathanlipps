@@ -32,7 +32,7 @@
       return this.main_node.build();
     };
     Flower.prototype.zoom_to = function(x, y, new_w) {
-      var new_h, r_cx, r_cy, viewbox_x_off, viewbox_y_off, x_off, y_off, _ref, _ref2;
+      var new_h, r_cx, r_cy, viewbox_x_off, viewbox_y_off, x_off, y_off, _ref;
       log('zooming');
       _ref = this.v_center, r_cx = _ref[0], r_cy = _ref[1];
       x_off = x - r_cx;
@@ -41,8 +41,8 @@
       viewbox_x_off = x_off + (this.v_width - new_w) / 2;
       viewbox_y_off = y_off + (this.v_height - new_h) / 2;
       log([x_off, y_off, new_w, new_h]);
-      this.paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false);
-      return _ref2 = [new_w, new_h, [x, y]], this.v_width = _ref2[0], this.v_height = _ref2[1], this.v_center = _ref2[2], _ref2;
+      this.paper.setViewBox(0, 0, this.v_width, this.v_height, false);
+      return this.paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false);
     };
     return Flower;
   })();
@@ -90,7 +90,7 @@
       stroke_color: '#777',
       stem_width: 1,
       selected_stem_width: 2,
-      node_radius: 0.055,
+      node_radius: 0.058,
       node_distance: 180,
       node_in_speed: 150,
       node_out_speed: 100,
@@ -181,21 +181,24 @@
         this.url = el.attr('data-url');
       }
     }
-    FlowerNode.prototype.build = function(center_xy, radius, distance) {
-      var in_speed, opts, out_speed, p, p_height, p_width, toline_text, _ref, _ref2, _ref3, _ref4;
+    FlowerNode.prototype.build = function(center_xy, radius, distance, radius_pct) {
+      var in_speed, opts, out_speed, p, p_height, p_width, toline_text, _ref, _ref2, _ref3, _ref4, _ref5;
       this.center_xy = center_xy;
       this.radius = radius;
       this.distance = distance;
+      this.radius_pct = radius_pct;
       _ref = [this.flower.opts, this.flower.paper, this.flower.p_height, this.flower.p_width], opts = _ref[0], p = _ref[1], p_height = _ref[2], p_width = _ref[3];
       if ((_ref2 = this.center_xy) == null) {
         this.center_xy = this.flower.p_center;
       }
       this.orig_center_xy = this.center_xy;
-      this.radius_pct = opts.node_radius;
-      if ((_ref3 = this.radius) == null) {
+      if ((_ref3 = this.radius_pct) == null) {
+        this.radius_pct = opts.node_radius;
+      }
+      if ((_ref4 = this.radius) == null) {
         this.radius = p_width * this.radius_pct;
       }
-      if ((_ref4 = this.distance) == null) {
+      if ((_ref5 = this.distance) == null) {
         this.distance = opts.node_distance;
       }
       in_speed = this.parent ? opts.node_in_speed : opts.node_in_speed * 2;
@@ -231,11 +234,11 @@
         cy: this.center_xy[1],
         r: this.radius
       }, in_speed, ">", __bind(function() {
-        var _ref5;
+        var _ref6;
         this.p_text = p.text(this.center_xy[0], this.center_xy[1], "" + this.label);
         this.p_set.push(this.p_text);
         this.p_hoverset.push(this.p_text);
-        (_ref5 = this.p_hoverset).hover.apply(_ref5, this.on_hovers());
+        (_ref6 = this.p_hoverset).hover.apply(_ref6, this.on_hovers());
         return this.p_hoverset.click(this.on_click);
       }, this));
       toline_text = "L" + this.center_xy[0] + "," + this.center_xy[1];
@@ -273,10 +276,13 @@
       } else {
         if (this.has_children_shown()) {
           this.hide_children();
+          return this.zoom_to_node();
         } else {
           if (this.parent) {
             this.parent.rotate_children_to(this, __bind(function() {
-              return this.grow_and_build();
+              return this.grow_and_build(__bind(function() {
+                return this.zoom_to_node();
+              }, this));
             }, this));
             _ref = this.parent.flower_children;
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -288,10 +294,10 @@
             }
           } else {
             this.build_children();
+            this.zoom_to_node();
           }
-          this.select();
+          return this.select();
         }
-        return this.zoom_to_node();
       }
     };
     FlowerNode.prototype.rotate_children = function(rotation_steps, clockwise, extra_half) {
@@ -372,15 +378,13 @@
         center_i = prev_i(center_i, num_children - 1);
       }
       log("Center i is " + center_i);
-      if (i !== center_i || extra_half) {
+      if ((i !== center_i) || extra_half) {
         if (is_right) {
           this.rotate_children(dist_between_i(i, center_i, num_children - 1), false, extra_half);
         } else if (is_left) {
           this.rotate_children(dist_between_i(i, center_i, num_children - 1, false), true, extra_half);
         }
         return setTimeout(callback, this.flower.opts.rotation_speed + 5);
-      } else {
-        return callback();
       }
     };
     FlowerNode.prototype.rotate_by = function(r_deg) {
@@ -400,7 +404,7 @@
         path: "M" + px + "," + py + "L" + cx + "," + cy
       }].concat(__slice.call(anim_args)));
     };
-    FlowerNode.prototype.grow_and_build = function() {
+    FlowerNode.prototype.grow_and_build = function(cb) {
       var even_children, grow_anim_speed, new_distance_ratio, new_x, new_y, opts, post_animation;
       even_children = this.parent.flower_children.length % 2 === 0;
       opts = this.flower.opts;
@@ -410,16 +414,16 @@
       new_y = this.parent.center_xy[1] + ((this.orig_center_xy[1] - this.parent.center_xy[1]) * new_distance_ratio);
       this.center_xy[1] -= this.distance * new_distance_ratio / 2;
       log("After growing, center_xy is " + this.center_xy);
+      post_animation = __bind(function() {
+        this.build_children();
+        return cb();
+      }, this);
       this.p_hoverset.animate({
         transform: "...T0,-" + (this.distance * new_distance_ratio / 2)
       }, grow_anim_speed, ">");
-      this.p_stem.animate({
+      return this.p_stem.animate({
         path: "M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + "L" + new_x + "," + new_y
-      }, grow_anim_speed, ">");
-      post_animation = __bind(function() {
-        return this.build_children();
-      }, this);
-      return setTimeout(post_animation, grow_anim_speed + 5);
+      }, grow_anim_speed, ">", post_animation);
     };
     FlowerNode.prototype.is_middle = function() {
       var diff;
@@ -458,21 +462,23 @@
       return this.selected = true;
     };
     FlowerNode.prototype.build_children = function() {
-      var child, i, new_distance, new_radius, _len, _ref, _results;
+      var child, i, new_distance, new_radius, new_radius_pct, _len, _ref, _results;
       new_distance = this.distance * 0.75;
       new_radius = this.radius * 0.7;
+      new_radius_pct = this.radius_pct * 0.7;
       log("Building children. Current parent xy is " + this.center_xy);
       _ref = this.flower_children;
       _results = [];
       for (i = 0, _len = _ref.length; i < _len; i++) {
         child = _ref[i];
-        _results.push(child.build(this.get_center_for_child(i, this.center_xy, new_distance), new_radius, new_distance));
+        _results.push(child.build(this.get_center_for_child(i, this.center_xy, new_distance), new_radius, new_distance, new_radius_pct));
       }
       return _results;
     };
     FlowerNode.prototype.zoom_to_node = function() {
-      var new_w;
-      return new_w = this.radius / this.radius_pct;
+      var new_w, _ref;
+      new_w = this.radius / this.radius_pct;
+      return (_ref = this.flower).zoom_to.apply(_ref, __slice.call(this.center_xy).concat([new_w]));
     };
     FlowerNode.prototype.deselect = function() {
       var o;

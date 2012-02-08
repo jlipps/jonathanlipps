@@ -21,14 +21,14 @@ class FlowerNode extends Node
         if el.attr('data-url')
             @url = el.attr('data-url')
 
-    build: (@center_xy, @radius, @distance) ->
+    build: (@center_xy, @radius, @distance, @radius_pct) ->
         # Set some convenience variables based on Flower options etc...
         [opts, p, p_height, p_width] = [@flower.opts, @flower.paper, @flower.p_height, @flower.p_width]
         @center_xy ?= @flower.p_center
         # Center XY gets changed, so we need to keep a copy free from
         # transformations
         @orig_center_xy = @center_xy
-        @radius_pct = opts.node_radius
+        @radius_pct ?= opts.node_radius
         @radius ?= p_width * @radius_pct
         @distance ?= opts.node_distance
         in_speed = if @parent then opts.node_in_speed else opts.node_in_speed*2
@@ -114,6 +114,8 @@ class FlowerNode extends Node
             if @has_children_shown()
                 # If this node has children shown, a click means 'hide them'!
                 @hide_children()
+                # Zoom into the node we just selected
+                @zoom_to_node()
             else
                 # If no children are shown, a click means 'show them'!
                 if @parent
@@ -122,7 +124,9 @@ class FlowerNode extends Node
                     @parent.rotate_children_to this, =>
                         # After rotation animation, grow the selected child's
                         # stem and build children from there
-                        @grow_and_build()
+                        @grow_and_build =>
+                            # Zoom into the node we just selected
+                            @zoom_to_node()
 
                     # If this node has a sibling with children shown, we
                     # need to close and deselect them
@@ -134,13 +138,14 @@ class FlowerNode extends Node
                     # If there's no parent, we don't need to expand, just build
                     # children
                     @build_children()
+                    # Zoom into the node we just selected
+                    @zoom_to_node()
 
 
                 # Finally, select the node to change color, set selection status
                 @select()
 
-            # Zoom into the node we just selected
-            @zoom_to_node()
+
 
     rotate_children: (rotation_steps, clockwise = false, extra_half = false) ->
         log "Rotating children #{rotation_steps} step#{if extra_half then ' with an extra half turn' else ''}"
@@ -241,7 +246,7 @@ class FlowerNode extends Node
 
         # If the node we want to rotate to is already in center position, we
         # don't need to do anything. Otherwise:
-        if i isnt center_i or extra_half
+        if (i isnt center_i) or extra_half
             # We need to find the 'distance' between this node and the center
             # node based on their indices, and based on which side of center
             # the node is on. With this information we can actually perform the
@@ -257,9 +262,9 @@ class FlowerNode extends Node
             # know the animation should take. This allows us to chain other
             # behavior after the animation completes
             setTimeout callback, @flower.opts.rotation_speed + 5
-        else
-            # If no rotation is required, call the callback immediately
-            callback()
+        # else
+        #     # If no rotation is required, call the callback immediately
+        #     callback()
 
     rotate_by: (r_deg) ->
         # The number of degrees to rotate the node by should be added to what is
@@ -278,7 +283,7 @@ class FlowerNode extends Node
         [px, py, cx, cy] = [@parent.center_xy..., @orig_center_xy...]
         @p_stem.animate {path: "M#{px},#{py}L#{cx},#{cy}"}, anim_args...
 
-    grow_and_build: ->
+    grow_and_build: (cb) ->
         even_children = @parent.flower_children.length % 2 is 0
         opts = @flower.opts
         grow_anim_speed = opts.rotation_speed
@@ -290,15 +295,13 @@ class FlowerNode extends Node
 
         #end_xy = [@parent.center_xy[0], @parent.center_xy[1] - (@distance * 2)]
 
-        @p_hoverset.animate {transform: "...T0,-#{@distance*new_distance_ratio/2}"}, grow_anim_speed, ">"
-
-        @p_stem.animate {path: "M#{@parent.center_xy[0]},#{@parent.center_xy[1]}L#{new_x},#{new_y}"}, grow_anim_speed, ">"
-
-
         post_animation = =>
             @build_children()
+            cb()
 
-        setTimeout post_animation, grow_anim_speed + 5
+        @p_hoverset.animate {transform: "...T0,-#{@distance*new_distance_ratio/2}"}, grow_anim_speed, ">"
+
+        @p_stem.animate {path: "M#{@parent.center_xy[0]},#{@parent.center_xy[1]}L#{new_x},#{new_y}"}, grow_anim_speed, ">", post_animation
 
 
     is_middle: ->
@@ -335,13 +338,14 @@ class FlowerNode extends Node
         # Draw children
         new_distance = @distance * 0.75
         new_radius = @radius * 0.7
+        new_radius_pct = @radius_pct * 0.7
         log "Building children. Current parent xy is #{@center_xy}"
         for child, i in @flower_children
-            child.build @get_center_for_child(i, @center_xy, new_distance), new_radius, new_distance
+            child.build @get_center_for_child(i, @center_xy, new_distance), new_radius, new_distance, new_radius_pct
 
     zoom_to_node: ->
         new_w = @radius / @radius_pct
-        #@flower.zoom_to(@center_xy..., new_w)
+        @flower.zoom_to(@center_xy..., new_w)
 
 
     deselect: ->

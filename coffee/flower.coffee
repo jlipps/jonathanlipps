@@ -37,8 +37,9 @@ class Flower
         viewbox_y_off = y_off + (@v_height - new_h) / 2
         log [x_off, y_off, new_w, new_h]
 
+        @paper.setViewBox(0, 0, @v_width, @v_height, false)
         @paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false)
-        [@v_width, @v_height, @v_center] = [new_w, new_h, [x, y]]
+        #[@v_width, @v_height, @v_center] = [new_w, new_h, [x, y]]
 
 
         # steps = 100
