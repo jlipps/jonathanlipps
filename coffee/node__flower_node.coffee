@@ -23,7 +23,7 @@ class FlowerNode extends Node
 
     build: (@center_xy, @radius, @distance, @radius_pct) ->
         # Set some convenience variables based on Flower options etc...
-        [opts, p, p_height, p_width] = [@flower.opts, @flower.paper, @flower.p_height, @flower.p_width]
+        [opts, p, p_height, p_width, p_font] = [@flower.opts, @flower.paper, @flower.p_height, @flower.p_width, @flower.p_font]
         @center_xy ?= @flower.p_center
         # Center XY gets changed, so we need to keep a copy free from
         # transformations
@@ -57,11 +57,11 @@ class FlowerNode extends Node
 
         # Push stem behind node circles always, and add to appropriate sets
         @p_stem.toBack()
-        @p_set.push(@p_stem)
-        @p_rset.push(@p_stem)
+        @p_set.push @p_stem
+        @p_rset.push @p_stem
 
         # Draw node circle, set attributes, and add to appropriate sets
-        @p_node = p.circle(@start_center_xy[0], @start_center_xy[1], @radius)
+        @p_node = p.circle @start_center_xy[0], @start_center_xy[1], @radius
         @p_node.attr
             fill: opts.node_color
             stroke: opts.stroke_color
@@ -74,8 +74,12 @@ class FlowerNode extends Node
         @p_node.animate {cx: @center_xy[0], cy: @center_xy[1], r: @radius}, in_speed, ">", =>
             # When animation is finished:
             # Draw text on the node and add to appropriate sets
-            @p_text = p.text(@center_xy[0], @center_xy[1], "#{@label}")
-            @p_set.push(@p_text)
+
+            @p_text = p.text @center_xy[0], @center_xy[1], @label
+            @p_text.attr
+                "font-size": 11
+                "font-family": "Verdana"
+                "fill": '#555'
             @p_hoverset.push(@p_text)
 
             # Bind hover events to create a glow around the node
@@ -111,11 +115,12 @@ class FlowerNode extends Node
         if @url
             window.location.href = @url
         else
-            if @has_children_shown()
+            if @selected
                 # If this node has children shown, a click means 'hide them'!
                 @hide_children()
                 # Zoom into the node we just selected
                 @zoom_to_node()
+                @deselect()
             else
                 # If no children are shown, a click means 'show them'!
                 if @parent
@@ -145,7 +150,23 @@ class FlowerNode extends Node
                 # Finally, select the node to change color, set selection status
                 @select()
 
-
+    build_text:  ->
+        [p, p_font] = [@flower.paper, @flower.p_font]
+        font_size = 8
+        @p_text = p.print -1000, -1000, "#{@label}", p_font, font_size
+        bbox = @p_text.getBBox()
+        while bbox.width < @radius * 2 - @radius * 0.6
+            #log "#{bbox.width} is less than #{@radius * 2 - 10}"
+            font_size += 2
+            @p_text.remove()
+            @p_text = p.print -1000, -1000, "#{@label}", p_font, font_size
+            bbox = @p_text.getBBox()
+        @p_text.remove()
+        text_x = @center_xy[0] - bbox.width / 2
+        log text_x
+        @p_text = p.print (@center_xy[0] - bbox.width / 2), @center_xy[1], "#{@label}", p_font, font_size
+        @p_set.push(@p_text)
+        log @p_text.getBBox()
 
     rotate_children: (rotation_steps, clockwise = false, extra_half = false) ->
         log "Rotating children #{rotation_steps} step#{if extra_half then ' with an extra half turn' else ''}"
@@ -262,9 +283,10 @@ class FlowerNode extends Node
             # know the animation should take. This allows us to chain other
             # behavior after the animation completes
             setTimeout callback, @flower.opts.rotation_speed + 5
-        # else
-        #     # If no rotation is required, call the callback immediately
-        #     callback()
+        else
+            # If no rotation is required, call the callback immediately
+            # so center node can jump up
+            callback()
 
     rotate_by: (r_deg) ->
         # The number of degrees to rotate the node by should be added to what is
@@ -338,7 +360,7 @@ class FlowerNode extends Node
         # Draw children
         new_distance = @distance * 0.75
         new_radius = @radius * 0.7
-        new_radius_pct = @radius_pct * 0.7
+        new_radius_pct = @radius_pct * 0.85
         log "Building children. Current parent xy is #{@center_xy}"
         for child, i in @flower_children
             child.build @get_center_for_child(i, @center_xy, new_distance), new_radius, new_distance, new_radius_pct
@@ -356,6 +378,9 @@ class FlowerNode extends Node
         @p_stem.attr
             'stroke-width': o.stem_width
         @selected = false
+        log @center_xy
+        log @orig_center_xy
+        @p_node.attr {cx: @orig_center_xy[0], cy: @orig_center_xy[1]}
 
     hide_children: ->
         # If children are shown, then a click means we need to recursively close
@@ -375,6 +400,11 @@ class FlowerNode extends Node
         # reshown they will appear in standard position
         @extra_rotation_degrees = 0
 
+        # Also need to clear out rotation step so we start back at 0
+        #log "Cur rot step is #{@cur_rot_step}, #{@cur_rot_deg}"
+        @cur_rot_step = 0
+        #@cur_rot_deg = 0
+
     unbuild_children: (upwards = false) ->
 
         log "Unbuilding children for: #{@label}"
@@ -382,6 +412,9 @@ class FlowerNode extends Node
         if @has_children_shown() and not upwards
             for child in @flower_children
                 child.unbuild_children()
+                child.selected = false
+                child.cur_rot_deg = 0
+                log "Set selected of #{child.label} to false"
         else if not @stop_removing and not @has_children_shown() and not @removal_animation_in_progress
             log "Removing #{@label} with animation"
             @remove_paper_elements =>

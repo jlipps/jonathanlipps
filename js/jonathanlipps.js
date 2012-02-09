@@ -27,6 +27,9 @@
       this.paper = Raphael(0, 0, this.p_width, this.p_height);
       this.p_center = [this.p_width / 2, this.p_height / 2];
       this.v_center = this.p_center;
+      this.p_font = this.paper.getFont(this.opts.font_family, this.opts.font_weight, this.opts.font_style, this.opts.font_stretch);
+      log('hi');
+      log(this.p_font);
     }
     Flower.prototype.build = function() {
       return this.main_node.build();
@@ -43,11 +46,12 @@
       viewbox_y_off = y_off + (this.v_height - new_h) / 2;
       log([viewbox_x_off, viewbox_y_off, new_w, new_h]);
       this.paper.setViewBox(0, 0, this.v_width, this.v_height, false);
+      this.paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false);
       steps = 200;
       ms = 150;
       interval = ms / steps;
       i = 1;
-      zoom_func = __bind(function() {
+      return zoom_func = __bind(function() {
         var step_h, step_h_diff, step_w, step_w_diff, step_x, step_y;
         if (i < steps) {
           step_x = i * (viewbox_x_off / steps);
@@ -67,7 +71,6 @@
           return clearInterval();
         }
       }, this);
-      return setInterval(zoom_func, interval);
     };
     return Flower;
   })();
@@ -119,7 +122,11 @@
       node_distance: 180,
       node_in_speed: 150,
       node_out_speed: 100,
-      rotation_speed: 200
+      rotation_speed: 200,
+      font_family: "myriad-condensed",
+      font_weight: 'normal',
+      font_style: 'normal',
+      font_stretch: 'condensed'
     };
     $('body').css({
       'height': $(window).outerHeight() + 'px'
@@ -207,12 +214,12 @@
       }
     }
     FlowerNode.prototype.build = function(center_xy, radius, distance, radius_pct) {
-      var in_speed, opts, out_speed, p, p_height, p_width, toline_text, _ref, _ref2, _ref3, _ref4, _ref5;
+      var in_speed, opts, out_speed, p, p_font, p_height, p_width, toline_text, _ref, _ref2, _ref3, _ref4, _ref5;
       this.center_xy = center_xy;
       this.radius = radius;
       this.distance = distance;
       this.radius_pct = radius_pct;
-      _ref = [this.flower.opts, this.flower.paper, this.flower.p_height, this.flower.p_width], opts = _ref[0], p = _ref[1], p_height = _ref[2], p_width = _ref[3];
+      _ref = [this.flower.opts, this.flower.paper, this.flower.p_height, this.flower.p_width, this.flower.p_font], opts = _ref[0], p = _ref[1], p_height = _ref[2], p_width = _ref[3], p_font = _ref[4];
       if ((_ref2 = this.center_xy) == null) {
         this.center_xy = this.flower.p_center;
       }
@@ -260,8 +267,12 @@
         r: this.radius
       }, in_speed, ">", __bind(function() {
         var _ref6;
-        this.p_text = p.text(this.center_xy[0], this.center_xy[1], "" + this.label);
-        this.p_set.push(this.p_text);
+        this.p_text = p.text(this.center_xy[0], this.center_xy[1], this.label);
+        this.p_text.attr({
+          "font-size": 11,
+          "font-family": "Verdana",
+          "fill": '#555'
+        });
         this.p_hoverset.push(this.p_text);
         (_ref6 = this.p_hoverset).hover.apply(_ref6, this.on_hovers());
         return this.p_hoverset.click(this.on_click);
@@ -299,9 +310,10 @@
       if (this.url) {
         return window.location.href = this.url;
       } else {
-        if (this.has_children_shown()) {
+        if (this.selected) {
           this.hide_children();
-          return this.zoom_to_node();
+          this.zoom_to_node();
+          return this.deselect();
         } else {
           if (this.parent) {
             this.parent.rotate_children_to(this, __bind(function() {
@@ -324,6 +336,25 @@
           return this.select();
         }
       }
+    };
+    FlowerNode.prototype.build_text = function() {
+      var bbox, font_size, p, p_font, text_x, _ref;
+      _ref = [this.flower.paper, this.flower.p_font], p = _ref[0], p_font = _ref[1];
+      font_size = 8;
+      this.p_text = p.print(-1000, -1000, "" + this.label, p_font, font_size);
+      bbox = this.p_text.getBBox();
+      while (bbox.width < this.radius * 2 - this.radius * 0.6) {
+        font_size += 2;
+        this.p_text.remove();
+        this.p_text = p.print(-1000, -1000, "" + this.label, p_font, font_size);
+        bbox = this.p_text.getBBox();
+      }
+      this.p_text.remove();
+      text_x = this.center_xy[0] - bbox.width / 2;
+      log(text_x);
+      this.p_text = p.print(this.center_xy[0] - bbox.width / 2, this.center_xy[1], "" + this.label, p_font, font_size);
+      this.p_set.push(this.p_text);
+      return log(this.p_text.getBBox());
     };
     FlowerNode.prototype.rotate_children = function(rotation_steps, clockwise, extra_half) {
       var child, deg_per_slice, double_cc_i, double_cw_i, i, max_child_i, num_children, r_deg, rs, step_amt, _len, _len2, _ref, _ref2, _results;
@@ -410,6 +441,8 @@
           this.rotate_children(dist_between_i(i, center_i, num_children - 1, false), true, extra_half);
         }
         return setTimeout(callback, this.flower.opts.rotation_speed + 5);
+      } else {
+        return callback();
       }
     };
     FlowerNode.prototype.rotate_by = function(r_deg) {
@@ -490,7 +523,7 @@
       var child, i, new_distance, new_radius, new_radius_pct, _len, _ref, _results;
       new_distance = this.distance * 0.75;
       new_radius = this.radius * 0.7;
-      new_radius_pct = this.radius_pct * 0.7;
+      new_radius_pct = this.radius_pct * 0.85;
       log("Building children. Current parent xy is " + this.center_xy);
       _ref = this.flower_children;
       _results = [];
@@ -515,13 +548,20 @@
       this.p_stem.attr({
         'stroke-width': o.stem_width
       });
-      return this.selected = false;
+      this.selected = false;
+      log(this.center_xy);
+      log(this.orig_center_xy);
+      return this.p_node.attr({
+        cx: this.orig_center_xy[0],
+        cy: this.orig_center_xy[1]
+      });
     };
     FlowerNode.prototype.hide_children = function() {
       this.stop_removing = true;
       this.clear_removal_flags_for_children();
       this.unbuild_children();
-      return this.extra_rotation_degrees = 0;
+      this.extra_rotation_degrees = 0;
+      return this.cur_rot_step = 0;
     };
     FlowerNode.prototype.unbuild_children = function(upwards) {
       var child, _i, _len, _ref, _results;
@@ -534,7 +574,10 @@
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           child = _ref[_i];
-          _results.push(child.unbuild_children());
+          child.unbuild_children();
+          child.selected = false;
+          child.cur_rot_deg = 0;
+          _results.push(log("Set selected of " + child.label + " to false"));
         }
         return _results;
       } else if (!this.stop_removing && !this.has_children_shown() && !this.removal_animation_in_progress) {

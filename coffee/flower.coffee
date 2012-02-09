@@ -1,7 +1,7 @@
 class Flower
     constructor: (@root_el, @container_el, @opts) ->
         # construct main node (which also constructs child nodes recursively)
-        @main_node = new FlowerNode(@root_el, this)
+        @main_node = new FlowerNode @root_el, this
 
         # ensure that the container div doesn't show scroll bars
         @container_el.css
@@ -16,11 +16,16 @@ class Flower
         # also store viewbox variables used for zooming/panning
         @v_width = @p_width
         @v_height = @p_height
-        @paper = Raphael(0, 0, @p_width, @p_height)
+        @paper = Raphael 0, 0, @p_width, @p_height
 
         # grab center point (x,y) for future reference
         @p_center = [@p_width / 2, @p_height / 2]
         @v_center = @p_center
+
+        # Set up font
+        @p_font = @paper.getFont @opts.font_family, @opts.font_weight, @opts.font_style, @opts.font_stretch
+        log 'hi'
+        log @p_font
 
 
     build: ->
@@ -39,7 +44,7 @@ class Flower
         log [viewbox_x_off, viewbox_y_off, new_w, new_h]
 
         @paper.setViewBox(0, 0, @v_width, @v_height, false)
-        #@paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false)
+        @paper.setViewBox(viewbox_x_off, viewbox_y_off, new_w, new_h, false)
         #[@v_width, @v_height, @v_center] = [new_w, new_h, [x, y]]
 
 
@@ -68,7 +73,7 @@ class Flower
             else
                 clearInterval()
 
-        setInterval zoom_func, interval
+        #setInterval zoom_func, interval
         # for i in [1..steps]
         #     setTimeout( =>
         #         step_x = i * (x_off / steps)
