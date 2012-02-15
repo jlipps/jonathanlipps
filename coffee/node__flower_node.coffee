@@ -30,7 +30,7 @@ class FlowerNode extends Node
         @orig_center_xy = @center_xy
         @radius_pct ?= opts.node_radius
         @radius ?= p_width * @radius_pct
-        @distance ?= opts.node_distance
+        @distance ?= 0
         in_speed = if @parent then opts.node_in_speed else opts.node_in_speed*2
         out_speed = opts.node_out_speed
 
@@ -358,9 +358,10 @@ class FlowerNode extends Node
 
     build_children: ->
         # Draw children
-        new_distance = @distance * 0.75
-        new_radius = @radius * 0.7
-        new_radius_pct = @radius_pct * 0.85
+        child_ratio = @flower.opts.node_child_radius_ratio
+        new_radius = @radius * child_ratio
+        new_distance = @radius + new_radius + new_radius * @flower.opts.node_distance_ratio
+        new_radius_pct = @radius_pct * (child_ratio * 0.9)
         log "Building children. Current parent xy is #{@center_xy}"
         for child, i in @flower_children
             child.build @get_center_for_child(i, @center_xy, new_distance), new_radius, new_distance, new_radius_pct

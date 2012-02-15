@@ -7,8 +7,9 @@ $ ->
         stroke_color: '#777'
         stem_width: 1
         selected_stem_width: 2
-        node_radius: 0.058 # node radius is a percentage of screen width
-        node_distance: 180
+        node_radius: 0.058 # node radius is a percentage of canvas width
+        node_distance_ratio: 0.75
+        node_child_radius_ratio: 0.8 # how much smaller a child should be
         node_in_speed: 150
         node_out_speed: 100
         rotation_speed: 200

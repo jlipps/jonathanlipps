@@ -28,8 +28,6 @@
       this.p_center = [this.p_width / 2, this.p_height / 2];
       this.v_center = this.p_center;
       this.p_font = this.paper.getFont(this.opts.font_family, this.opts.font_weight, this.opts.font_style, this.opts.font_stretch);
-      log('hi');
-      log(this.p_font);
     }
     Flower.prototype.build = function() {
       return this.main_node.build();
@@ -119,7 +117,8 @@
       stem_width: 1,
       selected_stem_width: 2,
       node_radius: 0.058,
-      node_distance: 180,
+      node_distance_ratio: 0.75,
+      node_child_radius_ratio: 0.8,
       node_in_speed: 150,
       node_out_speed: 100,
       rotation_speed: 200,
@@ -231,7 +230,7 @@
         this.radius = p_width * this.radius_pct;
       }
       if ((_ref5 = this.distance) == null) {
-        this.distance = opts.node_distance;
+        this.distance = 0;
       }
       in_speed = this.parent ? opts.node_in_speed : opts.node_in_speed * 2;
       out_speed = opts.node_out_speed;
@@ -520,10 +519,11 @@
       return this.selected = true;
     };
     FlowerNode.prototype.build_children = function() {
-      var child, i, new_distance, new_radius, new_radius_pct, _len, _ref, _results;
-      new_distance = this.distance * 0.75;
-      new_radius = this.radius * 0.7;
-      new_radius_pct = this.radius_pct * 0.85;
+      var child, child_ratio, i, new_distance, new_radius, new_radius_pct, _len, _ref, _results;
+      child_ratio = this.flower.opts.node_child_radius_ratio;
+      new_radius = this.radius * child_ratio;
+      new_distance = this.radius + new_radius + new_radius * this.flower.opts.node_distance_ratio;
+      new_radius_pct = this.radius_pct * (child_ratio * 0.9);
       log("Building children. Current parent xy is " + this.center_xy);
       _ref = this.flower_children;
       _results = [];

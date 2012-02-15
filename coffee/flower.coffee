@@ -24,8 +24,6 @@ class Flower
 
         # Set up font
         @p_font = @paper.getFont @opts.font_family, @opts.font_weight, @opts.font_style, @opts.font_stretch
-        log 'hi'
-        log @p_font
 
 
     build: ->
