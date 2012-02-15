@@ -333,7 +333,6 @@
       return [hover_on, hover_off];
     };
     FlowerNode.prototype.on_click = function() {
-      var s, sibling, _i, _len, _ref;
       log("" + this.label + " was clicked!");
       if (this.url) {
         return window.location.href = this.url;
@@ -341,31 +340,14 @@
         if (this.selected) {
           this.hide_children();
           this.zoom_to_node();
-          return this.deselect(true);
+          return this.deselect();
         } else {
           if (this.parent) {
-            _ref = (function() {
-              var _j, _len, _ref, _results;
-              _ref = this.parent.flower_children;
-              _results = [];
-              for (_j = 0, _len = _ref.length; _j < _len; _j++) {
-                s = _ref[_j];
-                if (s !== this) {
-                  _results.push(s);
-                }
-              }
-              return _results;
-            }).call(this);
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              sibling = _ref[_i];
-              if (sibling.has_children_shown()) {
-                sibling.hide_children();
-              }
-              sibling.deselect();
-            }
-            this.parent.rotate_children_to(this, __bind(function() {
-              return this.grow_and_build(__bind(function() {
-                return this.zoom_to_node();
+            this.close_siblings(__bind(function() {
+              return this.parent.rotate_children_to(this, __bind(function() {
+                return this.grow_and_build(__bind(function() {
+                  return this.zoom_to_node();
+                }, this));
               }, this));
             }, this));
           } else {
@@ -394,6 +376,35 @@
       this.p_text = p.print(this.center_xy[0] - bbox.width / 2, this.center_xy[1], "" + this.label, p_font, font_size);
       this.p_set.push(this.p_text);
       return log(this.p_text.getBBox());
+    };
+    FlowerNode.prototype.close_siblings = function(cb) {
+      var did_deselect, s, sibling, _i, _len, _ref;
+      did_deselect = false;
+      _ref = (function() {
+        var _j, _len, _ref, _results;
+        _ref = this.parent.flower_children;
+        _results = [];
+        for (_j = 0, _len = _ref.length; _j < _len; _j++) {
+          s = _ref[_j];
+          if (s !== this) {
+            _results.push(s);
+          }
+        }
+        return _results;
+      }).call(this);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        sibling = _ref[_i];
+        if (sibling.has_children_shown()) {
+          sibling.hide_children();
+        }
+        if (sibling.selected) {
+          sibling.deselect(cb);
+          did_deselect = true;
+        }
+      }
+      if (!did_deselect) {
+        return cb();
+      }
     };
     FlowerNode.prototype.rotate_children = function(rotation_steps, clockwise, extra_half) {
       var child, deg_per_slice, double_cc_i, double_cw_i, i, max_child_i, num_children, r_deg, rs, step_amt, _len, _len2, _ref, _ref2, _results;
@@ -590,11 +601,8 @@
       var new_w;
       return new_w = this.radius / this.radius_pct;
     };
-    FlowerNode.prototype.deselect = function(ungrow) {
-      var o;
-      if (ungrow == null) {
-        ungrow = false;
-      }
+    FlowerNode.prototype.deselect = function(cb) {
+      var o, post_animation;
       if (this.selected) {
         o = this.flower.opts;
         this.p_node.attr({
@@ -607,16 +615,43 @@
         this.selected = false;
         if (this.parent) {
           this.center_xy[1] += this.grow_translate;
-          this.grow_translate = 0;
-          if (false) {
-            log("Ungrowing " + this.label);
-            this.p_hoverset.animate({
-              transform: "...T0," + this.grow_translate
-            }, o.rotation_speed, ">");
-            return this.p_stem.animate({
-              path: "M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + "L" + this.orig_center_xy[0] + "," + this.orig_center_xy[1]
-            }, o.rotation_speed, ">");
-          }
+          log("Ungrowing " + this.label);
+          log(this.p_node.transform());
+          post_animation = __bind(function() {
+            var el, i, sub_t, t, ts, tstr, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _results;
+            _ref = [this.p_node, this.p_text];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              el = _ref[_i];
+              ts = el.transform();
+              ts = (function() {
+                _results = [];
+                for (var _j = 0, _ref2 = ts.length - 2; 0 <= _ref2 ? _j < _ref2 : _j > _ref2; 0 <= _ref2 ? _j++ : _j--){ _results.push(_j); }
+                return _results;
+              }).apply(this);
+              tstr = '';
+              for (_k = 0, _len2 = ts.length; _k < _len2; _k++) {
+                sub_t = ts[_k];
+                for (i = 0, _len3 = sub_t.length; i < _len3; i++) {
+                  t = sub_t[i];
+                  tstr += t;
+                  if (i !== 0 && i !== sub_t.length - 1) {
+                    tstr += ',';
+                  }
+                }
+              }
+              el.transform(tstr);
+            }
+            if (cb != null) {
+              return setTimeout(cb, 10);
+            }
+          }, this);
+          this.p_hoverset.animate({
+            transform: "...T0," + this.grow_translate
+          }, o.rotation_speed, ">");
+          this.p_stem.animate({
+            path: "M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + "L" + this.orig_center_xy[0] + "," + this.orig_center_xy[1]
+          }, o.rotation_speed, ">", post_animation);
+          return this.grow_translate = 0;
         }
       }
     };
@@ -640,8 +675,8 @@
           child = _ref[_i];
           child.unbuild_children();
           child.selected = false;
-          child.cur_rot_deg = 0;
-          _results.push(log("Set selected of " + child.label + " to false"));
+          child.is_middle = false;
+          _results.push(child.cur_rot_deg = 0);
         }
         return _results;
       } else if (!this.stop_removing && !this.has_children_shown() && !this.removal_animation_in_progress) {

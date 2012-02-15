@@ -128,26 +128,21 @@ class FlowerNode extends Node
                 @hide_children()
                 # Zoom into the node we just selected
                 @zoom_to_node()
-                @deselect true
+                @deselect()
             else
                 # If no children are shown, a click means 'show them'!
                 if @parent
                     # If this node has a sibling with children shown, we
                     # need to close and deselect them
-                    for sibling in (s for s in @parent.flower_children when s isnt this)
-                        if sibling.has_children_shown()
-                            sibling.hide_children()
-                        sibling.deselect()
-
-                    # Before opening this node's children, we need to rotate
-                    # the flower so that this node is on top
-                    @parent.rotate_children_to this, =>
-                        # After rotation animation, grow the selected child's
-                        # stem and build children from there
-                        @grow_and_build =>
-                            # Zoom into the node we just selected
-                            @zoom_to_node()
-
+                    @close_siblings =>
+                        # Before opening this node's children, we need to rotate
+                        # the flower so that this node is on top
+                        @parent.rotate_children_to this, =>
+                            # After rotation animation, grow the selected child's
+                            # stem and build children from there
+                            @grow_and_build =>
+                                # Zoom into the node we just selected
+                                @zoom_to_node()
 
                 else
                     # If there's no parent, we don't need to expand, just build
@@ -177,6 +172,18 @@ class FlowerNode extends Node
         @p_text = p.print (@center_xy[0] - bbox.width / 2), @center_xy[1], "#{@label}", p_font, font_size
         @p_set.push(@p_text)
         log @p_text.getBBox()
+
+    close_siblings: (cb) ->
+        did_deselect = false
+        for sibling in (s for s in @parent.flower_children when s isnt this)
+            if sibling.has_children_shown()
+                sibling.hide_children()
+            if sibling.selected
+                sibling.deselect cb
+                did_deselect = true
+
+        if not did_deselect
+            cb()
 
     rotate_children: (rotation_steps, clockwise = false, extra_half = false) ->
         log "Rotating children #{rotation_steps} step#{if extra_half then ' with an extra half turn' else ''}"
@@ -394,7 +401,7 @@ class FlowerNode extends Node
         #@flower.zoom_to(@center_xy..., new_w)
 
 
-    deselect: (ungrow = false) ->
+    deselect: (cb) ->
         if @selected
             o = @flower.opts
             @p_node.attr
@@ -405,11 +412,27 @@ class FlowerNode extends Node
             @selected = false
             if @parent
                 @center_xy[1] += @grow_translate
+                log "Ungrowing #{@label}"
+                log @p_node.transform()
+
+                post_animation = =>
+                    for el in [@p_node, @p_text]
+                        ts = el.transform()
+                        ts = [0...ts.length-2]
+                        tstr = ''
+                        for sub_t in ts
+                            for t, i in sub_t
+                                tstr += t
+                                if i isnt 0 and i isnt sub_t.length - 1
+                                    tstr += ','
+                        el.transform(tstr)
+                    if cb?
+                        setTimeout cb, 10
+
+                @p_hoverset.animate {transform: "...T0,#{@grow_translate}"}, o.rotation_speed, ">"
+                @p_stem.animate {path: "M#{@parent.center_xy[0]},#{@parent.center_xy[1]}L#{@orig_center_xy[0]},#{@orig_center_xy[1]}"}, o.rotation_speed, ">", post_animation
                 @grow_translate = 0
-                if false#ungrow
-                    log "Ungrowing #{@label}"
-                    @p_hoverset.animate {transform: "...T0,#{@grow_translate}"}, o.rotation_speed, ">"
-                    @p_stem.animate {path: "M#{@parent.center_xy[0]},#{@parent.center_xy[1]}L#{@orig_center_xy[0]},#{@orig_center_xy[1]}"}, o.rotation_speed, ">"
+
 
 
     hide_children: ->
@@ -443,8 +466,8 @@ class FlowerNode extends Node
             for child in @flower_children
                 child.unbuild_children()
                 child.selected = false
+                child.is_middle = false
                 child.cur_rot_deg = 0
-                log "Set selected of #{child.label} to false"
         else if not @stop_removing and not @has_children_shown() and not @removal_animation_in_progress
             log "Removing #{@label} with animation"
             @remove_paper_elements =>
