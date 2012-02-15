@@ -414,19 +414,13 @@ class FlowerNode extends Node
                 @center_xy[1] += @grow_translate
                 log "Ungrowing #{@label}"
                 log @p_node.transform()
-                ungrow_speed = o.rotation_speed * 0.75
+                ungrow_speed = o.rotation_speed * 0.85
 
                 post_animation = =>
                     for el in [@p_node, @p_text]
                         ts = el.transform()
                         ts = ts[0...ts.length-2]
-                        tstr = ''
-                        for sub_t in ts
-                            for t, i in sub_t
-                                tstr += t
-                                if i isnt 0 and i isnt sub_t.length - 1
-                                    tstr += ','
-                        log [el.toString(), tstr]
+                        tstr = transform_str_from_array ts
                         el.transform(tstr)
                     if cb?
                         setTimeout cb, 10

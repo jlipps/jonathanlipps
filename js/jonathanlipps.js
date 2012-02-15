@@ -1,5 +1,5 @@
 (function() {
-  var ContentNode, Flower, FlowerNode, Node, deg2rad, dist_between_i, log, log_xy, next_i, prev_i, rad2deg;
+  var ContentNode, Flower, FlowerNode, Node, deg2rad, dist_between_i, log, log_xy, next_i, prev_i, rad2deg, transform_str_from_array;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -130,6 +130,21 @@
       }
     }
     return dist;
+  };
+  transform_str_from_array = function(ts) {
+    var i, sub_t, t, tstr, _i, _len, _len2;
+    tstr = '';
+    for (_i = 0, _len = ts.length; _i < _len; _i++) {
+      sub_t = ts[_i];
+      for (i = 0, _len2 = sub_t.length; i < _len2; i++) {
+        t = sub_t[i];
+        tstr += t;
+        if (i !== 0 && i !== sub_t.length - 1) {
+          tstr += ',';
+        }
+      }
+    }
+    return tstr;
   };
   $(function() {
     var f, opts;
@@ -617,26 +632,15 @@
           this.center_xy[1] += this.grow_translate;
           log("Ungrowing " + this.label);
           log(this.p_node.transform());
-          ungrow_speed = o.rotation_speed * 0.75;
+          ungrow_speed = o.rotation_speed * 0.85;
           post_animation = __bind(function() {
-            var el, i, sub_t, t, ts, tstr, _i, _j, _len, _len2, _len3, _ref;
+            var el, ts, tstr, _i, _len, _ref;
             _ref = [this.p_node, this.p_text];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               el = _ref[_i];
               ts = el.transform();
               ts = ts.slice(0, ts.length - 2);
-              tstr = '';
-              for (_j = 0, _len2 = ts.length; _j < _len2; _j++) {
-                sub_t = ts[_j];
-                for (i = 0, _len3 = sub_t.length; i < _len3; i++) {
-                  t = sub_t[i];
-                  tstr += t;
-                  if (i !== 0 && i !== sub_t.length - 1) {
-                    tstr += ',';
-                  }
-                }
-              }
-              log([el.toString(), tstr]);
+              tstr = transform_str_from_array(ts);
               el.transform(tstr);
             }
             if (cb != null) {

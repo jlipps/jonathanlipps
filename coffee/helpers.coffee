@@ -32,3 +32,12 @@ dist_between_i = (i1, i2, max_i, next=true) ->
             i1 = i_inc(i1, max_i)
             dist += 1
     return dist
+
+transform_str_from_array = (ts) ->
+    tstr = ''
+    for sub_t in ts
+        for t, i in sub_t
+            tstr += t
+            if i isnt 0 and i isnt sub_t.length - 1
+                tstr += ','
+    return tstr
