@@ -602,7 +602,7 @@
       return new_w = this.radius / this.radius_pct;
     };
     FlowerNode.prototype.deselect = function(cb) {
-      var o, post_animation;
+      var o, post_animation, ungrow_speed;
       if (this.selected) {
         o = this.flower.opts;
         this.p_node.attr({
@@ -617,20 +617,17 @@
           this.center_xy[1] += this.grow_translate;
           log("Ungrowing " + this.label);
           log(this.p_node.transform());
+          ungrow_speed = o.rotation_speed * 0.75;
           post_animation = __bind(function() {
-            var el, i, sub_t, t, ts, tstr, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _results;
+            var el, i, sub_t, t, ts, tstr, _i, _j, _len, _len2, _len3, _ref;
             _ref = [this.p_node, this.p_text];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               el = _ref[_i];
               ts = el.transform();
-              ts = (function() {
-                _results = [];
-                for (var _j = 0, _ref2 = ts.length - 2; 0 <= _ref2 ? _j < _ref2 : _j > _ref2; 0 <= _ref2 ? _j++ : _j--){ _results.push(_j); }
-                return _results;
-              }).apply(this);
+              ts = ts.slice(0, ts.length - 2);
               tstr = '';
-              for (_k = 0, _len2 = ts.length; _k < _len2; _k++) {
-                sub_t = ts[_k];
+              for (_j = 0, _len2 = ts.length; _j < _len2; _j++) {
+                sub_t = ts[_j];
                 for (i = 0, _len3 = sub_t.length; i < _len3; i++) {
                   t = sub_t[i];
                   tstr += t;
@@ -639,6 +636,7 @@
                   }
                 }
               }
+              log([el.toString(), tstr]);
               el.transform(tstr);
             }
             if (cb != null) {
@@ -647,10 +645,10 @@
           }, this);
           this.p_hoverset.animate({
             transform: "...T0," + this.grow_translate
-          }, o.rotation_speed, ">");
+          }, o.ungrow_speed, ">", post_animation);
           this.p_stem.animate({
             path: "M" + this.parent.center_xy[0] + "," + this.parent.center_xy[1] + "L" + this.orig_center_xy[0] + "," + this.orig_center_xy[1]
-          }, o.rotation_speed, ">", post_animation);
+          }, o.ungrow_speed, ">");
           return this.grow_translate = 0;
         }
       }
