@@ -29,6 +29,15 @@ class Flower
     build: ->
         @main_node.build()
 
+    track_mouse: ->
+        @tracking_rect = @paper.rect 0, 0, @p_width, @p_height
+        @tracking_rect.toBack()
+        @tracking_rect.attr
+            fill: 'lightblue'
+            'stroke-width': 0
+        @tracking_rect.mousemove (e) =>
+            log [e.pageX, e.pageY]
+
     zoom_to: (x, y, new_w) ->
         log 'zooming'
         # zoom in viewport

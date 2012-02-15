@@ -2,6 +2,15 @@ log = (text) ->
     if console?.log?
         console.log(text)
 
+log_xy = (x, y, label, cx, cy) ->
+    if x? and y?
+        str = "#{x}, #{y}"
+        if label? and cx? and cy?
+            str += " (#{label}: #{parseInt cx}, #{parseInt cy})"
+        $('#logXY').html str
+    else
+        $('#logXY').html ""
+
 deg2rad = (phi) ->
     return Math.PI * phi / 180
 

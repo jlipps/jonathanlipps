@@ -16,6 +16,9 @@ class FlowerNode extends Node
         @cur_rot_deg = 0
         @extra_rotation_degrees = 0
 
+        @grow_translate = 0
+        @is_middle = false
+
         # Some FlowerNodes have urls, which means they are basically links
         @url = null
         if el.attr('data-url')
@@ -27,7 +30,7 @@ class FlowerNode extends Node
         @center_xy ?= @flower.p_center
         # Center XY gets changed, so we need to keep a copy free from
         # transformations
-        @orig_center_xy = @center_xy
+        @orig_center_xy = [@center_xy[0], @center_xy[1]]
         @radius_pct ?= opts.node_radius
         @radius ?= p_width * @radius_pct
         @distance ?= 0
@@ -40,7 +43,7 @@ class FlowerNode extends Node
         # Set a start center_xy to animate from, either from below the canvas
         # (in the case of the root node) or from the center of the parent
         if @parent
-            @start_center_xy = @parent.center_xy
+            @start_center_xy = [@parent.center_xy[0], @parent.center_xy[1]]
         else
             @start_center_xy = [@center_xy[0], p_height + 1]
 
@@ -88,6 +91,10 @@ class FlowerNode extends Node
             # Bind click events to trigger rotation, showing/hiding of children, etc...
             @p_hoverset.click @on_click
 
+            # Bind mousemove events to track x,y for debug purposes
+            @p_hoverset.mousemove (e) =>
+                log_xy e.pageX, e.pageY, @label, @center_xy...
+
         # Animate stem movement (i.e., stem elongation)
         toline_text = "L#{@center_xy[0]},#{@center_xy[1]}"
         if @parent
@@ -107,6 +114,7 @@ class FlowerNode extends Node
                 opacity: 0.3
         hover_off = =>
             @p_node_glow.remove()
+            log_xy()
 
         return [hover_on, hover_off]
 
@@ -120,10 +128,17 @@ class FlowerNode extends Node
                 @hide_children()
                 # Zoom into the node we just selected
                 @zoom_to_node()
-                @deselect()
+                @deselect true
             else
                 # If no children are shown, a click means 'show them'!
                 if @parent
+                    # If this node has a sibling with children shown, we
+                    # need to close and deselect them
+                    for sibling in (s for s in @parent.flower_children when s isnt this)
+                        if sibling.has_children_shown()
+                            sibling.hide_children()
+                        sibling.deselect()
+
                     # Before opening this node's children, we need to rotate
                     # the flower so that this node is on top
                     @parent.rotate_children_to this, =>
@@ -133,12 +148,7 @@ class FlowerNode extends Node
                             # Zoom into the node we just selected
                             @zoom_to_node()
 
-                    # If this node has a sibling with children shown, we
-                    # need to close and deselect them
-                    for sibling in @parent.flower_children
-                        if sibling.has_children_shown()
-                            sibling.hide_children()
-                        sibling.deselect()
+
                 else
                     # If there's no parent, we don't need to expand, just build
                     # children
@@ -219,7 +229,8 @@ class FlowerNode extends Node
                 child.rotate_by @extra_rotation_degrees
             # Notify the child that it needs to update its @center_xy based
             # on where it has ended up (i.e., the rotation step)
-            child.set_new_center i, @cur_rot_step, num_children
+            if extra_half or rotation_steps isnt 0
+                child.set_new_center i, @cur_rot_step, num_children
 
     node_index: ->
         # Get the index of this node in its parent's list of children
@@ -263,7 +274,7 @@ class FlowerNode extends Node
         if even_nodes_spread and is_right
             center_i = prev_i center_i, num_children - 1
 
-        log "Center i is #{center_i}"
+        log "Center i was #{center_i}, rotating to #{i}"
 
         # If the node we want to rotate to is already in center position, we
         # don't need to do anything. Otherwise:
@@ -282,11 +293,13 @@ class FlowerNode extends Node
             # animation callback by setting a timeout for the length of time we
             # know the animation should take. This allows us to chain other
             # behavior after the animation completes
-            setTimeout callback, @flower.opts.rotation_speed + 5
+            setTimeout callback, @flower.opts.rotation_speed + 50
         else
             # If no rotation is required, call the callback immediately
             # so center node can jump up
             callback()
+
+        @set_middle_node node
 
     rotate_by: (r_deg) ->
         # The number of degrees to rotate the node by should be added to what is
@@ -310,10 +323,11 @@ class FlowerNode extends Node
         opts = @flower.opts
         grow_anim_speed = opts.rotation_speed
         new_distance_ratio = 1.6
+        @grow_translate = @distance * new_distance_ratio / 2
         new_x = @parent.center_xy[0] + ((@orig_center_xy[0] - @parent.center_xy[0]) * new_distance_ratio)
         new_y = @parent.center_xy[1] + ((@orig_center_xy[1] - @parent.center_xy[1]) * new_distance_ratio)
-        @center_xy[1] -= @distance * new_distance_ratio / 2
-        log "After growing, center_xy is #{@center_xy}"
+        @center_xy[1] -= @grow_translate
+        log "Post growth center_xy for #{@label} is #{@center_xy}"
 
         #end_xy = [@parent.center_xy[0], @parent.center_xy[1] - (@distance * 2)]
 
@@ -321,7 +335,8 @@ class FlowerNode extends Node
             @build_children()
             cb()
 
-        @p_hoverset.animate {transform: "...T0,-#{@distance*new_distance_ratio/2}"}, grow_anim_speed, ">"
+        #transform_add = if @p_node.transform().length then '...T' else 't'
+        @p_hoverset.animate {transform: "...T0,-#{@grow_translate}"}, grow_anim_speed, ">"
 
         @p_stem.animate {path: "M#{@parent.center_xy[0]},#{@parent.center_xy[1]}L#{new_x},#{new_y}"}, grow_anim_speed, ">", post_animation
 
@@ -341,9 +356,16 @@ class FlowerNode extends Node
 
     index_of_middle_node: ->
         for child, i in @flower_children
-            if child.selected
+            if child.is_middle
                 return i
         return null
+
+    set_middle_node: (node) ->
+        for child in @flower_children
+            if child is node
+                child.is_middle = true
+            else
+                child.is_middle = false
 
     select: ->
         # When this node is selected, make some nice visual changes to it
@@ -353,35 +375,42 @@ class FlowerNode extends Node
             'stroke-width': o.selected_stem_width
         @p_stem.attr
             'stroke-width': o.selected_stem_width
-        log "Setting selected of #{@label} to true"
+        #log "Setting selected of #{@label} to true"
         @selected = true
 
     build_children: ->
         # Draw children
-        child_ratio = @flower.opts.node_child_radius_ratio
-        new_radius = @radius * child_ratio
-        new_distance = @radius + new_radius + new_radius * @flower.opts.node_distance_ratio
-        new_radius_pct = @radius_pct * (child_ratio * 0.9)
-        log "Building children. Current parent xy is #{@center_xy}"
-        for child, i in @flower_children
-            child.build @get_center_for_child(i, @center_xy, new_distance), new_radius, new_distance, new_radius_pct
+        if @flower_children.length
+            child_ratio = @flower.opts.node_child_radius_ratio
+            new_radius = @radius * child_ratio
+            new_distance = @radius + new_radius + new_radius * @flower.opts.node_distance_ratio
+            new_radius_pct = @radius_pct * (child_ratio * 0.9)
+            log "Building children for #{@label}. Current parent xy is #{@center_xy}"
+            for child, i in @flower_children
+                child.build @get_center_for_child(i, @center_xy, new_distance), new_radius, new_distance, new_radius_pct
 
     zoom_to_node: ->
         new_w = @radius / @radius_pct
-        @flower.zoom_to(@center_xy..., new_w)
+        #@flower.zoom_to(@center_xy..., new_w)
 
 
-    deselect: ->
-        o = @flower.opts
-        @p_node.attr
-            fill: o.node_color
-            'stroke-width': o.stem_width
-        @p_stem.attr
-            'stroke-width': o.stem_width
-        @selected = false
-        log @center_xy
-        log @orig_center_xy
-        @p_node.attr {cx: @orig_center_xy[0], cy: @orig_center_xy[1]}
+    deselect: (ungrow = false) ->
+        if @selected
+            o = @flower.opts
+            @p_node.attr
+                fill: o.node_color
+                'stroke-width': o.stem_width
+            @p_stem.attr
+                'stroke-width': o.stem_width
+            @selected = false
+            if @parent
+                @center_xy[1] += @grow_translate
+                @grow_translate = 0
+                if false#ungrow
+                    log "Ungrowing #{@label}"
+                    @p_hoverset.animate {transform: "...T0,#{@grow_translate}"}, o.rotation_speed, ">"
+                    @p_stem.animate {path: "M#{@parent.center_xy[0]},#{@parent.center_xy[1]}L#{@orig_center_xy[0]},#{@orig_center_xy[1]}"}, o.rotation_speed, ">"
+
 
     hide_children: ->
         # If children are shown, then a click means we need to recursively close
@@ -488,6 +517,5 @@ class FlowerNode extends Node
             new_i = num_children + new_i
         #log "New i for node #{@label} is #{new_i}"
         @center_xy = @parent.get_center_for_child new_i, @parent.center_xy, @distance
-        log "Center for #{@label} is #{@center_xy}"
-        #@set_cur_deg()
+        log "New center for #{@label} is #{@center_xy}"
 
